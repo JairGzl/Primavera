@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Escena Primaveral 3D</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000; overflow: hidden; font-family: sans-serif; }
+    canvas { display: block; }
+    #info {
+      position: absolute;
+      top: 16px; left: 16px;
+      color: #fff;
+      background: rgba(0,0,0,0.4);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      pointer-events: none;
+    }
+    #info h2 { font-size: 15px; margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <div id="info">
+    <h2>🌸 Escena Primaveral 3D</h2>
+    Click + arrastrar para rotar · Scroll para zoom
+  </div>
+
+  <!-- Three.js desde CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- Módulos del equipo (cargar en orden) -->
+  <script src="main.js"></script>
+  <script src="fauna.js"></script>
+  <script src="efectos.js"></script>
+  <script src="audio.js"></script>
+
+  <!-- Arrancar la escena -->
+  <script>
+    // Llamar a cada módulo del equipo
+    initEscena();       // Integrante 1: escena base
+    initFauna();        // Integrante 2: fauna y personajes
+    initEfectos();      // Integrante 3: partículas y efectos
+    initAudio();        // Integrante 4: sonido
+
+    // Loop principal de animación
+    function animate() {
+      requestAnimationFrame(animate);
+      actualizarFauna();    // Integrante 2
+      actualizarEfectos();  // Integrante 3
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>
