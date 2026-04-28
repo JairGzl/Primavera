@@ -102,10 +102,10 @@ function initEscena() {
   }
 
   // --- Nubes ---
-  nubes.push(crearNube(-10, 12, -20));
-  nubes.push(crearNube(5,  14, -25));
-  nubes.push(crearNube(15, 11, -18));
-  nubes.push(crearNube(-20, 13, -30));
+  nubes.push(crearNube(  0, 12, -22));
+  nubes.push(crearNube( 16, 13, -16));
+  nubes.push(crearNube( 22, 11,   0));
+  nubes.push(crearNube(-16, 14,  16));
 
   initControles();
 
@@ -331,8 +331,19 @@ function crearNube(x, y, z) {
 
 function animarNubes(delta) {
   nubes.forEach(function (nube, i) {
-    nube.position.x += delta * (0.6 + i * 0.15);
-    if (nube.position.x > 35) nube.position.x = -35;
+    // Cada nube gira a velocidad distinta
+    var velocidad = 0.08 + i * 0.02;
+    
+    // Calcular el ángulo actual en base a su posición
+    var angulo = Math.atan2(nube.position.x, nube.position.z);
+    angulo += delta * velocidad; // Avanzar el ángulo
+    
+    // Radio fijo por nube (distancia al centro)
+    var radio = Math.sqrt(nube.position.x * nube.position.x + nube.position.z * nube.position.z);
+    
+    // Actualizar posición en círculo
+    nube.position.x = Math.sin(angulo) * radio;
+    nube.position.z = Math.cos(angulo) * radio;
   });
 }
 

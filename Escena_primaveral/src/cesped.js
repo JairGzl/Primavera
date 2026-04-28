@@ -102,7 +102,7 @@ var grassUniforms = null;    // Referencia a los uniforms para actualizarlos en 
 
 // Configuración ajustable
 var GRASS_CONFIG = {
-  count:         100000,  // Más briznas para cubrir bien toda el área
+  count:         1000000,  // Más briznas para cubrir bien toda el área
   areaSize:      38,     // Tamaño del área cubierta (debe coincidir con el terreno)
   heightMin:     0.20,   // Altura mínima de brizna
   heightMax:     0.55,   // Altura máxima de brizna

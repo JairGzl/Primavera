@@ -49,10 +49,12 @@
     // Loop principal de animación
     function animate() {
       requestAnimationFrame(animate);
-      actualizarFauna();    // Integrante 2
-      actualizarEfectos();  // Integrante 3
+      var delta = clock.getDelta(); // ← obtener el tiempo entre frames
+      actualizarFauna();
+      actualizarEfectos();
+      animarNubes(delta);           // ← agregar esta línea
       renderer.render(scene, camera);
-    }
+    } 
     animate();
   </script>
 </body>
