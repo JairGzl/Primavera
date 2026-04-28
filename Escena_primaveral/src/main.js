@@ -182,6 +182,45 @@ function crearArbol(x, y, z, escala = 1.0) {
     d.position.set(p[0] * escala, p[1] * escala, p[2] * escala);
     grupo.add(d);
   });
+
+  // --- Manzanas (aparecen aleatoriamente en la copa) ---
+  var manzanaMat = new THREE.MeshLambertMaterial({ color: 0xFF1A1A }); // Rojo brillante
+  var talloManzanaMat = new THREE.MeshLambertMaterial({ color: 0x5D3A1A }); // Café
+
+  var manzanasPos = [
+    [ 1.0, 3.2,  0.8],
+    [-1.1, 3.5, -0.4],
+    [ 0.2, 4.0,  1.1],
+    [-0.7, 3.1, -1.0],
+    [ 1.2, 4.2, -0.5],
+  ];
+
+  // Solo mostrar 2 o 3 manzanas aleatorias (no siempre las 5)
+  var cuantas = 2 + Math.floor(Math.random() * 2); // Entre 2 y 3
+  for (var i = 0; i < cuantas; i++) {
+    var p = manzanasPos[i];
+
+    // Cuerpo de la manzana
+    var manzanaGeo = new THREE.SphereGeometry(0.22 * escala, 8, 8);
+    var manzana = new THREE.Mesh(manzanaGeo, manzanaMat);
+    manzana.position.set(p[0] * escala, p[1] * escala, p[2] * escala);
+    manzana.castShadow = true;
+    grupo.add(manzana);
+
+    // Tallito encima
+    var talloGeo = new THREE.CylinderGeometry(0.02 * escala, 0.02 * escala, 0.18 * escala, 5);
+    var tallo = new THREE.Mesh(talloGeo, talloManzanaMat);
+    tallo.position.set(p[0] * escala, (p[1] + 0.28) * escala, p[2] * escala);
+    grupo.add(tallo);
+
+    // Hojita encima del tallito
+    var hojaGeo = new THREE.SphereGeometry(0.08 * escala, 5, 4);
+    hojaGeo.scale(1.8, 0.5, 1.0);
+    var hojaMat = new THREE.MeshLambertMaterial({ color: 0x4CAF50 });
+    var hoja = new THREE.Mesh(hojaGeo, hojaMat);
+    hoja.position.set((p[0] + 0.1) * escala, (p[1] + 0.35) * escala, p[2] * escala);
+    grupo.add(hoja);
+  }
  
   // --- Sigue el terreno ondulado ---
   var yTerreno = Math.sin(x * 0.25) * 0.5 + Math.cos(z * 0.25) * 0.5
