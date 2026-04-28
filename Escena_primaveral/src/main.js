@@ -56,7 +56,7 @@ function initEscena() {
   scene.add(ambientLight);
 
   // Luz hemisférica: cielo rosado / suelo verde
-  var hemiLight = new THREE.HemisphereLight(0xFFB0C8, 0x6AAF40, 0.5);
+  var hemiLight = new THREE.HemisphereLight(0xFFB0C8, 0x2E7D32, 0.6);
   scene.add(hemiLight);
 
   // --- Terreno ---
@@ -72,7 +72,11 @@ function initEscena() {
   }
   terrenoGeo.computeVertexNormals();
 
-  var terrenoMat = new THREE.MeshLambertMaterial({ color: 0x6AAF40 }); // Verde más fresco
+  var terrenoMat = new THREE.MeshLambertMaterial({ 
+  color: 0x4CAF50,        // Verde vivo
+  emissive: 0x1A3A0A,     // Toque oscuro propio para profundidad
+  emissiveIntensity: 0.15
+  }); // Verde más fresco
   var terreno = new THREE.Mesh(terrenoGeo, terrenoMat);
   terreno.rotation.x = -Math.PI / 2;
   terreno.receiveShadow = true;
