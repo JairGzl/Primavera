@@ -123,82 +123,73 @@ function initEscena() {
 function crearArbol(x, y, z, escala = 1.0) {
   var grupo = new THREE.Group();
  
-  // --- Tronco principal ---
-  var troncoGeo = new THREE.CylinderGeometry(0.18 * escala, 0.32 * escala, 2.8 * escala, 10);
-  var troncoMat = new THREE.MeshLambertMaterial({ color: 0x6B3F1F });
+  // --- Tronco corto y gordito (estilo AC) ---
+  var troncoGeo = new THREE.CylinderGeometry(0.28 * escala, 0.35 * escala, 1.8 * escala, 10);
+  var troncoMat = new THREE.MeshLambertMaterial({ color: 0x8B5E3C });
   var tronco = new THREE.Mesh(troncoGeo, troncoMat);
-  tronco.position.y = 1.4 * escala;
+  tronco.position.y = 0.9 * escala;
   tronco.castShadow = true;
   tronco.receiveShadow = true;
   grupo.add(tronco);
  
-  // --- Ramas (cilindros pequeños inclinados) ---
-  var ramaMat = new THREE.MeshLambertMaterial({ color: 0x7A4F2D });
-  var ramasData = [
-    { px: 0.6,  py: 2.8, pz: 0,    rx: 0,    ry: 0,   rz: -0.5 },
-    { px: -0.5, py: 3.0, pz: 0.2,  rx: 0,    ry: 0.5, rz:  0.5 },
-    { px: 0.2,  py: 3.3, pz: -0.5, rx: 0.4,  ry: 0,   rz: -0.2 },
-    { px: -0.3, py: 3.1, pz: 0.5,  rx: -0.3, ry: 0,   rz:  0.3 },
+  // --- Copa principal: esfera grande central ---
+  // Animal Crossing usa una esfera grande esponjosa como copa
+  var verdeOscuro  = new THREE.MeshLambertMaterial({ color: 0x3B8C3A });
+  var verdeMedio   = new THREE.MeshLambertMaterial({ color: 0x4CAF50 });
+  var verdeClaro   = new THREE.MeshLambertMaterial({ color: 0x66BB6A });
+ 
+  // Esfera base (la más grande, atrás/abajo)
+  var copaBaseGeo = new THREE.SphereGeometry(2.0 * escala, 12, 12);
+  var copaBase = new THREE.Mesh(copaBaseGeo, verdeOscuro);
+  copaBase.position.y = 3.2 * escala;
+  copaBase.castShadow = true;
+  copaBase.receiveShadow = true;
+  grupo.add(copaBase);
+ 
+  // Esferas medianas alrededor para la forma esponjosa característica de AC
+  var bolasData = [
+    { x:  1.2, y: 3.0, z:  0.5, r: 1.4, mat: verdeMedio  },
+    { x: -1.2, y: 3.0, z:  0.3, r: 1.3, mat: verdeMedio  },
+    { x:  0.5, y: 3.0, z: -1.1, r: 1.3, mat: verdeOscuro },
+    { x: -0.5, y: 3.0, z:  1.1, r: 1.2, mat: verdeMedio  },
+    { x:  0.0, y: 4.4, z:  0.0, r: 1.5, mat: verdeClaro  }, // Parte de arriba más clara
+    { x:  0.9, y: 4.2, z: -0.6, r: 1.0, mat: verdeClaro  },
+    { x: -0.9, y: 4.3, z:  0.5, r: 1.0, mat: verdeMedio  },
   ];
-  ramasData.forEach(function (r) {
-    var ramaGeo = new THREE.CylinderGeometry(0.05 * escala, 0.09 * escala, 1.2 * escala, 6);
-    var rama = new THREE.Mesh(ramaGeo, ramaMat);
-    rama.position.set(r.px * escala, r.py * escala, r.pz * escala);
-    rama.rotation.set(r.rx, r.ry, r.rz);
-    rama.castShadow = true;
-    grupo.add(rama);
+ 
+  bolasData.forEach(function (b) {
+    var geo = new THREE.SphereGeometry(b.r * escala, 10, 10);
+    var mesh = new THREE.Mesh(geo, b.mat);
+    mesh.position.set(b.x * escala, b.y * escala, b.z * escala);
+    mesh.castShadow = true;
+    grupo.add(mesh);
   });
  
-  // --- Hojas: varias capas de conos apilados (pino/árbol frondoso) ---
-  var hojasMat = new THREE.MeshLambertMaterial({ color: 0x2E7D32 }); // Verde oscuro
-  var hojasMat2 = new THREE.MeshLambertMaterial({ color: 0x388E3C }); // Verde medio
-  var hojasMat3 = new THREE.MeshLambertMaterial({ color: 0x4CAF50 }); // Verde claro (luz)
- 
-  // Capa baja (más ancha)
-  var cono1Geo = new THREE.ConeGeometry(2.4 * escala, 2.0 * escala, 10);
-  var cono1 = new THREE.Mesh(cono1Geo, hojasMat);
-  cono1.position.y = 3.5 * escala;
-  cono1.castShadow = true;
-  cono1.receiveShadow = true;
-  grupo.add(cono1);
- 
-  // Capa media
-  var cono2Geo = new THREE.ConeGeometry(1.9 * escala, 1.8 * escala, 10);
-  var cono2 = new THREE.Mesh(cono2Geo, hojasMat2);
-  cono2.position.y = 4.8 * escala;
-  cono2.castShadow = true;
-  grupo.add(cono2);
- 
-  // Capa alta (punta)
-  var cono3Geo = new THREE.ConeGeometry(1.3 * escala, 1.6 * escala, 10);
-  var cono3 = new THREE.Mesh(cono3Geo, hojasMat3);
-  cono3.position.y = 6.0 * escala;
-  cono3.castShadow = true;
-  grupo.add(cono3);
- 
-  // --- Pequeñas esferas de hojas sueltas alrededor para dar volumen ---
-  var hojaSueltaMat = new THREE.MeshLambertMaterial({ color: 0x33691E });
-  var hojasPos = [
-    [ 1.2,  3.8,  0.5],
-    [-1.1,  4.0, -0.4],
-    [ 0.8,  4.5, -1.0],
-    [-0.9,  5.0,  0.8],
-    [ 0.5,  5.5, -0.6],
-    [-0.6,  3.5,  1.0],
+  // --- Detalle: pequeñas manchitas oscuras (huecos entre hojas) ---
+  // Simula la textura esponjosa de AC con esferas muy pequeñas oscuras
+  var detalleMat = new THREE.MeshLambertMaterial({ color: 0x2E6B2E });
+  var detallesPos = [
+    [ 1.5, 3.5,  0.8],
+    [-1.3, 3.8, -0.5],
+    [ 0.3, 4.8,  1.0],
+    [-0.8, 4.5, -0.9],
+    [ 1.0, 2.8, -0.8],
+    [-0.4, 2.9,  1.2],
   ];
-  hojasPos.forEach(function (p) {
-    var hGeo = new THREE.SphereGeometry((0.4 + Math.random() * 0.3) * escala, 6, 6);
-    var h = new THREE.Mesh(hGeo, hojaSueltaMat);
-    h.position.set(p[0] * escala, p[1] * escala, p[2] * escala);
-    h.castShadow = true;
-    grupo.add(h);
+  detallesPos.forEach(function (p) {
+    var dGeo = new THREE.SphereGeometry(0.35 * escala, 6, 6);
+    var d = new THREE.Mesh(dGeo, detalleMat);
+    d.position.set(p[0] * escala, p[1] * escala, p[2] * escala);
+    grupo.add(d);
   });
  
-  // Calcular Y del terreno en esa posición
+  // --- Sigue el terreno ondulado ---
   var yTerreno = Math.sin(x * 0.25) * 0.5 + Math.cos(z * 0.25) * 0.5
                + Math.sin(x * 0.6 + z * 0.4) * 0.2;
  
   grupo.position.set(x, yTerreno, z);
+  // Pequeña rotación aleatoria para que no todos sean iguales
+  grupo.rotation.y = Math.random() * Math.PI * 2;
   scene.add(grupo);
   return grupo;
 }
