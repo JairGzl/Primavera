@@ -5,7 +5,7 @@
 
 function initCesped() {
   // Césped en zona central y alrededor
-  for (var i = 0; i < 5000; i++) {
+  for (var i = 0; i < 1500; i++) {
     var x = (Math.random() - 0.5) * 40;
     var z = (Math.random() - 0.5) * 40;
     crearBrizna(x, 0, z);
