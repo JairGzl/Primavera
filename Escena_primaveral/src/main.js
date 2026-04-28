@@ -179,12 +179,13 @@ function crearArbol(x, y, z, escala = 1.0) {
   var hojaManzanaMat  = new THREE.MeshLambertMaterial({ color: 0x4CAF50 });
  
   var manzanasPos = [
-    [ 1.1, 3.6,  0.9],
-    [-1.0, 3.8, -0.5],
-    [ 0.2, 4.2,  1.2],
-    [-0.8, 3.3, -1.1],
-    [ 1.3, 4.5, -0.4],
-  ];
+    [ 1.8, 3.4,  1.0],
+    [-1.7, 3.6, -0.6],
+    [ 0.3, 3.0,  1.8],
+    [-1.6, 3.2, -1.5],
+    [ 1.9, 4.2, -0.5],
+    ];
+    manzana.renderOrder = 1;
  
   var cuantas = 2 + Math.floor(Math.random() * 2); // 2 o 3 manzanas
   for (var i = 0; i < cuantas; i++) {
