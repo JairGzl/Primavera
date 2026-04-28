@@ -185,9 +185,9 @@ function crearArbol(x, y, z, escala = 1.0) {
     [-1.6, 3.2, -1.5],
     [ 1.9, 4.2, -0.5],
     ];
-    manzana.renderOrder = 1;
+    
  
-  var cuantas = 2 + Math.floor(Math.random() * 2); // 2 o 3 manzanas
+  var cuantas = 4 + Math.floor(Math.random() * 2); // 2 o 3 manzanas
   for (var i = 0; i < cuantas; i++) {
     var p = manzanasPos[i];
  
@@ -197,6 +197,7 @@ function crearArbol(x, y, z, escala = 1.0) {
     );
     manzana.position.set(p[0] * escala, p[1] * escala, p[2] * escala);
     manzana.castShadow = true;
+    manzana.renderOrder = 1;
     grupo.add(manzana);
  
     // Tallito
@@ -205,6 +206,7 @@ function crearArbol(x, y, z, escala = 1.0) {
       talloManzanaMat
     );
     tallo.position.set(p[0] * escala, (p[1] + 0.3) * escala, p[2] * escala);
+    tallo.renderOrder = 1;
     grupo.add(tallo);
  
     // Hojita
@@ -212,6 +214,7 @@ function crearArbol(x, y, z, escala = 1.0) {
     hojaGeo.scale(2.0, 0.5, 1.0);
     var hoja = new THREE.Mesh(hojaGeo, hojaManzanaMat);
     hoja.position.set((p[0] + 0.12) * escala, (p[1] + 0.38) * escala, p[2] * escala);
+    hoja.renderOrder = 1;
     grupo.add(hoja);
   }
  
