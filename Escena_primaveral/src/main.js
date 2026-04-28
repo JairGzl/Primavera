@@ -11,7 +11,7 @@ function initEscena() {
   // --- Escena ---
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xFFD0A0); // Amanecer cálido
-  scene.fog = new THREE.FogExp2(0xFFCCA0, 0.012); // Niebla exponencial más suave
+  scene.fog = new THREE.FogExp2(0xFFCCA0, 0.007); // Niebla exponencial más suave
 
   // --- Cámara ---
   camera = new THREE.PerspectiveCamera(
@@ -52,11 +52,11 @@ function initEscena() {
   scene.add(luzRelleno);
 
   // Luz ambiente cálida
-  var ambientLight = new THREE.AmbientLight(0xFFE0C0, 0.5);
+  var ambientLight = new THREE.AmbientLight(0xFFE0C0, 0.8);
   scene.add(ambientLight);
 
   // Luz hemisférica: cielo rosado / suelo verde
-  var hemiLight = new THREE.HemisphereLight(0xFFB0C8, 0x2E7D32, 0.6);
+  var hemiLight = new THREE.HemisphereLight(0xFFB0C8, 0x2E7D32, 0.9);
   scene.add(hemiLight);
 
   // --- Terreno ---
@@ -73,10 +73,10 @@ function initEscena() {
   terrenoGeo.computeVertexNormals();
 
   var terrenoMat = new THREE.MeshLambertMaterial({ 
-  color: 0x4CAF50,        // Verde vivo
-  emissive: 0x1A3A0A,     // Toque oscuro propio para profundidad
-  emissiveIntensity: 0.15
-  }); // Verde más fresco
+  color: 0x3A7D2C,        // Verde oscuro y saturado
+  emissive: 0x1C4A10,     // Brillo propio verde
+  emissiveIntensity: 0.3  // Suficiente para no verse negro
+  });
   var terreno = new THREE.Mesh(terrenoGeo, terrenoMat);
   terreno.rotation.x = -Math.PI / 2;
   terreno.receiveShadow = true;
