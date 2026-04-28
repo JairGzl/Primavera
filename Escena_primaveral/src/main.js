@@ -118,156 +118,81 @@ function initEscena() {
 
 // ---------- Helpers ----------
 
-function crearArbol(x, y, z, escala = 1.0) {
+function crearArbol(x, y, z, escala) {
+  escala = escala || 1.0;
   var grupo = new THREE.Group();
- 
-  // --- Tronco principal ---
-  var troncoGeo = new THREE.CylinderGeometry(0.18 * escala, 0.32 * escala, 2.8 * escala, 10);
-  var troncoMat = new THREE.MeshLambertMaterial({ color: 0x6B3F1F });
+
+  var troncoGeo = new THREE.CylinderGeometry(0.15 * escala, 0.28 * escala, 2.2 * escala, 8);
+  var troncoMat = new THREE.MeshLambertMaterial({ color: 0x7A4F2D });
   var tronco = new THREE.Mesh(troncoGeo, troncoMat);
-  tronco.position.y = 1.4 * escala;
+  tronco.position.y = 1.1 * escala;
   tronco.castShadow = true;
-  tronco.receiveShadow = true;
   grupo.add(tronco);
- 
-  // --- Ramas (cilindros pequeños inclinados) ---
-  var ramaMat = new THREE.MeshLambertMaterial({ color: 0x7A4F2D });
-  var ramasData = [
-    { px: 0.6,  py: 2.8, pz: 0,    rx: 0,    ry: 0,   rz: -0.5 },
-    { px: -0.5, py: 3.0, pz: 0.2,  rx: 0,    ry: 0.5, rz:  0.5 },
-    { px: 0.2,  py: 3.3, pz: -0.5, rx: 0.4,  ry: 0,   rz: -0.2 },
-    { px: -0.3, py: 3.1, pz: 0.5,  rx: -0.3, ry: 0,   rz:  0.3 },
-  ];
-  ramasData.forEach(function (r) {
-    var ramaGeo = new THREE.CylinderGeometry(0.05 * escala, 0.09 * escala, 1.2 * escala, 6);
-    var rama = new THREE.Mesh(ramaGeo, ramaMat);
-    rama.position.set(r.px * escala, r.py * escala, r.pz * escala);
-    rama.rotation.set(r.rx, r.ry, r.rz);
-    rama.castShadow = true;
-    grupo.add(rama);
-  });
- 
-  // --- Hojas: varias capas de conos apilados (pino/árbol frondoso) ---
-  var hojasMat = new THREE.MeshLambertMaterial({ color: 0x2E7D32 }); // Verde oscuro
-  var hojasMat2 = new THREE.MeshLambertMaterial({ color: 0x388E3C }); // Verde medio
-  var hojasMat3 = new THREE.MeshLambertMaterial({ color: 0x4CAF50 }); // Verde claro (luz)
- 
-  // Capa baja (más ancha)
-  var cono1Geo = new THREE.ConeGeometry(2.4 * escala, 2.0 * escala, 10);
-  var cono1 = new THREE.Mesh(cono1Geo, hojasMat);
-  cono1.position.y = 3.5 * escala;
-  cono1.castShadow = true;
-  cono1.receiveShadow = true;
-  grupo.add(cono1);
- 
-  // Capa media
-  var cono2Geo = new THREE.ConeGeometry(1.9 * escala, 1.8 * escala, 10);
-  var cono2 = new THREE.Mesh(cono2Geo, hojasMat2);
-  cono2.position.y = 4.8 * escala;
-  cono2.castShadow = true;
-  grupo.add(cono2);
- 
-  // Capa alta (punta)
-  var cono3Geo = new THREE.ConeGeometry(1.3 * escala, 1.6 * escala, 10);
-  var cono3 = new THREE.Mesh(cono3Geo, hojasMat3);
-  cono3.position.y = 6.0 * escala;
-  cono3.castShadow = true;
-  grupo.add(cono3);
- 
-  // --- Pequeñas esferas de hojas sueltas alrededor para dar volumen ---
-  var hojaSueltaMat = new THREE.MeshLambertMaterial({ color: 0x33691E });
-  var hojasPos = [
-    [ 1.2,  3.8,  0.5],
-    [-1.1,  4.0, -0.4],
-    [ 0.8,  4.5, -1.0],
-    [-0.9,  5.0,  0.8],
-    [ 0.5,  5.5, -0.6],
-    [-0.6,  3.5,  1.0],
-  ];
-  hojasPos.forEach(function (p) {
-    var hGeo = new THREE.SphereGeometry((0.4 + Math.random() * 0.3) * escala, 6, 6);
-    var h = new THREE.Mesh(hGeo, hojaSueltaMat);
-    h.position.set(p[0] * escala, p[1] * escala, p[2] * escala);
-    h.castShadow = true;
-    grupo.add(h);
-  });
- 
-  // Calcular Y del terreno en esa posición
-  var yTerreno = Math.sin(x * 0.25) * 0.5 + Math.cos(z * 0.25) * 0.5
-               + Math.sin(x * 0.6 + z * 0.4) * 0.2;
- 
-  grupo.position.set(x, yTerreno, z);
+
+  var copaMat = new THREE.MeshLambertMaterial({ color: 0xFFAFC0 });
+  var copaGeo = new THREE.SphereGeometry(1.9 * escala, 10, 10);
+  var copa = new THREE.Mesh(copaGeo, copaMat);
+  copa.position.y = 3.4 * escala;
+  copa.castShadow = true;
+  grupo.add(copa);
+
+  var copaMat2 = new THREE.MeshLambertMaterial({ color: 0xFFCCD8 });
+  var copa2Geo = new THREE.SphereGeometry(1.2 * escala, 10, 10);
+  var copa2 = new THREE.Mesh(copa2Geo, copaMat2);
+  copa2.position.set(0.7 * escala, 4.6 * escala, 0.3 * escala);
+  copa2.castShadow = true;
+  grupo.add(copa2);
+
+  var copa3Geo = new THREE.SphereGeometry(0.9 * escala, 8, 8);
+  var copa3 = new THREE.Mesh(copa3Geo, copaMat);
+  copa3.position.set(-0.6 * escala, 4.2 * escala, -0.2 * escala);
+  copa3.castShadow = true;
+  grupo.add(copa3);
+
+  grupo.position.set(x, y, z);
   scene.add(grupo);
   return grupo;
 }
 
 function crearFlor(x, y, z) {
-  var grupo = new THREE.Group();
- 
-  // Colores para los pétalos
-  var coloresPetalos = [
-    0xFF6B9D, // Rosa fuerte
-    0xFF69B4, // Rosa claro
-    0xFFD700, // Amarillo
-    0xFF4500, // Naranja-rojo
-    0xFFFFFF, // Blanco
-    0xDA70D6, // Orquídea
-    0xFF85A1, // Salmón
-  ];
-  var colorPetalo = coloresPetalos[Math.floor(Math.random() * coloresPetalos.length)];
-  var alturaFlor = 0.4 + Math.random() * 0.3;
- 
-  // --- Tallo ---
-  var talloGeo = new THREE.CylinderGeometry(0.025, 0.03, alturaFlor * 2, 6);
-  var talloMat = new THREE.MeshLambertMaterial({ color: 0x2E7D32 });
+  var colores = [0xFF6B9D, 0xFFD700, 0xFF4500, 0xFF69B4, 0xFFFFFF, 0xFF9EBC, 0xFFE566];
+  var color = colores[Math.floor(Math.random() * colores.length)];
+  var alturaFlor = 0.35 + Math.random() * 0.2;
+
+  var talloGeo = new THREE.CylinderGeometry(0.02, 0.025, alturaFlor * 1.5, 5);
+  var talloMat = new THREE.MeshLambertMaterial({ color: 0x3A9A5C });
   var tallo = new THREE.Mesh(talloGeo, talloMat);
-  tallo.position.y = alturaFlor;
-  tallo.receiveShadow = true;
-  grupo.add(tallo);
- 
-  // --- Hojita lateral en el tallo ---
-  var hojaGeo = new THREE.SphereGeometry(0.12, 5, 4);
-  hojaGeo.scale(1.8, 0.4, 0.8); // Aplanar para que parezca hoja
-  var hojaMat = new THREE.MeshLambertMaterial({ color: 0x388E3C });
-  var hoja = new THREE.Mesh(hojaGeo, hojaMat);
-  hoja.position.set(0.15, alturaFlor * 0.6, 0);
-  hoja.rotation.z = 0.4;
-  grupo.add(hoja);
- 
-  // --- Pétalos (6 elipses alrededor del centro) ---
-  var petalMat = new THREE.MeshLambertMaterial({ color: colorPetalo, side: THREE.DoubleSide });
-  var numPetalos = 6;
-  for (var i = 0; i < numPetalos; i++) {
-    var angulo = (i / numPetalos) * Math.PI * 2;
-    var petalGeo = new THREE.SphereGeometry(0.13, 6, 5);
-    petalGeo.scale(1.0, 0.35, 1.8); // Forma ovalada de pétalo
-    var petal = new THREE.Mesh(petalGeo, petalMat);
- 
-    // Posición alrededor del centro
-    petal.position.set(
-      Math.cos(angulo) * 0.18,
-      alturaFlor * 2,
-      Math.sin(angulo) * 0.18
-    );
-    petal.rotation.y = angulo;
-    petal.castShadow = true;
-    grupo.add(petal);
-  }
- 
-  // --- Centro de la flor (pistilo) ---
-  var centroGeo = new THREE.SphereGeometry(0.09, 8, 8);
-  var centroMat = new THREE.MeshLambertMaterial({ color: 0xFFE000 }); // Amarillo brillante
-  var centro = new THREE.Mesh(centroGeo, centroMat);
-  centro.position.y = alturaFlor * 2;
-  centro.castShadow = true;
-  grupo.add(centro);
- 
-  // --- Posición siguiendo el terreno ---
-  var yTerreno = Math.sin(x * 0.25) * 0.5 + Math.cos(z * 0.25) * 0.5
-               + Math.sin(x * 0.6 + z * 0.4) * 0.2;
- 
-  grupo.position.set(x, yTerreno, z);
-  grupo.rotation.y = Math.random() * Math.PI * 2; // Orientación aleatoria
+  tallo.position.set(x, y + alturaFlor * 0.75, z);
+  scene.add(tallo);
+
+  var florGeo = new THREE.SphereGeometry(0.10 + Math.random() * 0.05, 6, 6);
+  var florMat = new THREE.MeshLambertMaterial({ color: color });
+  var flor = new THREE.Mesh(florGeo, florMat);
+  flor.position.set(x, y + alturaFlor * 1.5, z);
+  scene.add(flor);
+}
+
+function crearNube(x, y, z) {
+  var grupo = new THREE.Group();
+  var nubeMat = new THREE.MeshLambertMaterial({ color: 0xFFFFFF }); // ✅ Blanco puro
+
+  var posiciones = [
+    [0,    0,   0,   1.6],
+    [1.7,  0.2, 0,   1.3],
+    [-1.6, 0.1, 0,   1.1],
+    [0.6,  0.9, 0,   1.1],
+    [-0.4, 0.7, 0.4, 0.9],
+    [1.0, -0.2, 0.5, 0.8],
+  ];
+
+  posiciones.forEach(function (p) {
+    var geo = new THREE.SphereGeometry(p[3], 8, 8);
+    var mesh = new THREE.Mesh(geo, nubeMat);
+    mesh.position.set(p[0], p[1], p[2]);
+    grupo.add(mesh);
+  });
+
+  grupo.position.set(x, y, z);
   scene.add(grupo);
   return grupo;
 }
