@@ -91,6 +91,7 @@ function initEscena() {
   crearArbol(0,   0, -15, 1.4);
   crearArbol(8,   0, -20, 0.9);
   crearArbol(-8,  0, -18, 1.2);
+  
 
   // --- Flores ---
   for (var f = 0; f < 50; f++) {
