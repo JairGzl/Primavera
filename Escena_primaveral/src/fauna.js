@@ -26,41 +26,40 @@ var COLORES_MARIPOSA = [
 // ============================================================
 function initFauna() {
 
-  // --- Mariposas (6 unidades en distintas zonas) ---
-  for (var i = 0; i < 6; i++) {
+ // --- Mariposas (12 unidades) ---  ← antes: 6
+  for (var i = 0; i < 12; i++) {
     var m = crearMariposa(
-      (Math.random() - 0.5) * 18,  // X: distribuidas en el campo
-      2.0 + Math.random() * 2.5,   // Y: entre 2 y 4.5 metros de altura
-      (Math.random() - 0.5) * 18   // Z: profundidad variada
+      (Math.random() - 0.5) * 18,
+      2.0 + Math.random() * 2.5,
+      (Math.random() - 0.5) * 18
     );
-    // Guardamos parámetros de órbita únicos por mariposa
-    m.radioOrbita = 2.5 + i * 0.6;
-    m.velocidadOrbita = 0.35 + i * 0.08;
-    m.offsetFase = i * (Math.PI * 2 / 6); // Fase inicial distribuida uniformemente
+    m.radioOrbita = 4.0 + i * 0.8;
+    m.velocidadOrbita = 0.35 + i * 0.05;        // ← ajustado para 12 bichos
+    m.offsetFase = i * (Math.PI * 2 / 12);       // ← distribuir 12 fases
     m.velocidadAleteo = 7 + Math.random() * 4;
     m.amplitudVertical = 0.3 + Math.random() * 0.4;
-    m.centroX = (Math.random() - 0.5) * 8;
-    m.centroZ = (Math.random() - 0.5) * 8;
+    m.centroX = (Math.random() - 0.5) * 16;
+    m.centroZ = (Math.random() - 0.5) * 16;
     mariposas.push(m);
   }
 
-  // --- Abejas (5 unidades rondando zonas de flores) ---
-  for (var j = 0; j < 5; j++) {
+
+  // --- Abejas (10 unidades) ---  ← antes: 5
+  for (var j = 0; j < 10; j++) {
     var a = crearAbeja(
       (Math.random() - 0.5) * 14,
-      0.8 + Math.random() * 1.5,   // Más bajas, cerca de las flores
+      0.8 + Math.random() * 1.5,
       (Math.random() - 0.5) * 14
     );
-    a.offsetFase = j * 1.7;
+    a.offsetFase = j * 1.1;                      // ← ajustado para 10 bichos
     a.velocidadX = 0.6 + Math.random() * 0.4;
     a.velocidadZ = 0.5 + Math.random() * 0.3;
-    a.radioX = 3.0 + Math.random() * 2.0;
-    a.radioZ = 2.5 + Math.random() * 2.0;
-    a.centroX = (Math.random() - 0.5) * 6;
-    a.centroZ = (Math.random() - 0.5) * 6;
+    a.radioX = 5.0 + Math.random() * 3.0;
+    a.radioZ = 4.5 + Math.random() * 3.0;
+    a.centroX = (Math.random() - 0.5) * 12;
+    a.centroZ = (Math.random() - 0.5) * 12;
     abejas.push(a);
   }
-
   // --- Pájaros (una bandada de 4 en formación) ---
   crearBandada(4, 0, 5, 0); // x=0, y=5 (altura), z=0 (centro)
 }
