@@ -94,7 +94,7 @@ function initEscena() {
   
 
   // --- Flores ---
-  for (var f = 0; f < 50; f++) {
+  for (var f = 0; f < 150; f++) {
   var fx = (Math.random() - 0.5) * 24;
   var fz = (Math.random() - 0.5) * 24;
   var dx = fx - 0;   // LAGO_X
