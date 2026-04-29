@@ -135,6 +135,12 @@ function crearGeometriaBrizna(alturaBase) {
   return geo;
 }
 
+function dentroDelLago(x, z) {
+  var dx = x - 0;
+  var dz = z - 6;
+  return Math.sqrt(dx * dx + dz * dz) < 3.8; // ← cambiar de 4.0 a 3.8
+}
+
 // ──────────────────────────────────────────────────────────────
 //  FUNCIÓN PÚBLICA: initCesped()
 // ──────────────────────────────────────────────────────────────
@@ -215,12 +221,14 @@ function initCesped() {
       var z = -half + (row + 0.1 + Math.random() * 0.8) * cellSize;
 
       var yTerrain = calcularYTerreno(x, z);
-      dummy.position.set(x, yTerrain, z);
-      dummy.rotation.y = Math.random() * Math.PI * 2;
-      dummy.scale.set(1, alturas[gridPlaced] / alturaMedia, 1);
-      dummy.updateMatrix();
-      grassMesh.setMatrixAt(gridPlaced, dummy.matrix);
-      gridPlaced++;
+      if (!dentroDelLago(x, z)) {
+        dummy.position.set(x, yTerrain, z);
+        dummy.rotation.y = Math.random() * Math.PI * 2;
+        dummy.scale.set(1, alturas[gridPlaced] / alturaMedia, 1);
+        dummy.updateMatrix();
+        grassMesh.setMatrixAt(gridPlaced, dummy.matrix);
+      }
+      gridPlaced++; 
     }
   }
 
@@ -232,11 +240,13 @@ function initCesped() {
     var z = -5 + Math.random() * 23;              // Primer plano: Z de -5 a +18
 
     var yTerrain = calcularYTerreno(x, z);
-    dummy.position.set(x, yTerrain, z);
-    dummy.rotation.y = Math.random() * Math.PI * 2;
-    dummy.scale.set(1, alturas[j] / alturaMedia, 1);
-    dummy.updateMatrix();
-    grassMesh.setMatrixAt(j, dummy.matrix);
+    if (!dentroDelLago(x, z)) {
+      dummy.position.set(x, yTerrain, z);
+      dummy.rotation.y = Math.random() * Math.PI * 2;
+      dummy.scale.set(1, alturas[j] / alturaMedia, 1);
+      dummy.updateMatrix();
+      grassMesh.setMatrixAt(j, dummy.matrix);
+    }
   }
 
   grassMesh.instanceMatrix.needsUpdate = true;
