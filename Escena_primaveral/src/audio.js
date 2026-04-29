@@ -85,37 +85,72 @@ function crearSonidoAgua() {
 function crearZumbidoAbejas() {
   if (!audioCtx) return;
 
-  function zumbidoBreve() {
+  function buzzBreve() {
     if (!audioCtx) return;
 
-    try {
-      var osc = audioCtx.createOscillator();
-      var gan = audioCtx.createGain();
-
-      osc.type = 'sine';
-      osc.frequency.value = 190 + Math.random() * 60;
-
-      var duracion = 0.5 + Math.random() * 0.9;
-
-      gan.gain.setValueAtTime(0, audioCtx.currentTime);
-      gan.gain.linearRampToValueAtTime(0.022, audioCtx.currentTime + 0.1);
-      gan.gain.linearRampToValueAtTime(0.022, audioCtx.currentTime + duracion - 0.12);
-      gan.gain.linearRampToValueAtTime(0, audioCtx.currentTime + duracion);
-
-      osc.connect(gan);
-      gan.connect(audioCtx.destination);
-      osc.start(audioCtx.currentTime);
-      osc.stop(audioCtx.currentTime + duracion + 0.05);
-
-    } catch(e) {
-      console.log('Abeja skip:', e);
+    // ── Calcular distancia promedio cámara → abejas ──────────
+    // Si no hay abejas aún o la cámara no existe, silencio
+    var distancia = 999;
+    if (typeof camera !== 'undefined' && typeof abejas !== 'undefined' && abejas.length > 0) {
+      var totalDist = 0;
+      abejas.forEach(function(a) {
+        var dx = camera.position.x - a.grupo.position.x;
+        var dy = camera.position.y - a.grupo.position.y;
+        var dz = camera.position.z - a.grupo.position.z;
+        totalDist += Math.sqrt(dx*dx + dy*dy + dz*dz);
+      });
+      distancia = totalDist / abejas.length; // distancia promedio
     }
 
-    // Siempre programa el siguiente, aunque este falle
-    setTimeout(zumbidoBreve, 1500 + Math.random() * 3500);
+    // ── Volumen según distancia ───────────────────────────────
+    // Cerca (dist < 5)  → volumen máximo 0.06
+    // Lejos (dist > 20) → silencio total
+    var volMax = 0;
+    if (distancia < 20) {
+      volMax = Math.max(0, 0.06 * (1 - distancia / 20));
+    }
+
+    // Si está muy lejos, no reproducir nada — solo reagendar
+    if (volMax < 0.002) {
+      setTimeout(buzzBreve, 800 + Math.random() * 1200);
+      return;
+    }
+
+    // ── Sonido: "bizz" rápido (2 pulsos cortos) ───────────────
+    var numPulsos = 2; // bizz bizz
+    for (var p = 0; p < numPulsos; p++) {
+      (function(offset) {
+        setTimeout(function() {
+          if (!audioCtx) return;
+
+          var osc = audioCtx.createOscillator();
+          var gan = audioCtx.createGain();
+
+          osc.type = 'square'; // Square da el "zumbido" áspero de insecto
+          // Frecuencia de alas de abeja: 200-250 Hz
+          osc.frequency.value = 200 + Math.random() * 50;
+
+          // Cada pulso dura muy poco — es un "biz" rápido
+          var durPulso = 0.06 + Math.random() * 0.04;
+
+          gan.gain.setValueAtTime(0, audioCtx.currentTime);
+          gan.gain.linearRampToValueAtTime(volMax, audioCtx.currentTime + 0.01);
+          gan.gain.linearRampToValueAtTime(0, audioCtx.currentTime + durPulso);
+
+          osc.connect(gan);
+          gan.connect(audioCtx.destination);
+          osc.start(audioCtx.currentTime);
+          osc.stop(audioCtx.currentTime + durPulso + 0.01);
+
+        }, offset);
+      })(p * 90); // 90ms entre pulsos → "bizz bizz"
+    }
+
+    // ── Reagendar: pausa larga entre grupos de buzz ───────────
+    setTimeout(buzzBreve, 1200 + Math.random() * 2500);
   }
 
-  setTimeout(zumbidoBreve, 600);
+  setTimeout(buzzBreve, 600);
 }
 
 // ── AVES AMBIENTE (más naturales que los trinos anteriores) ───
