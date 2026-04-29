@@ -36,14 +36,206 @@ function reproducirAmbiente() {
 
   // Sonido de viento suave (ruido filtrado)
   crearViento();
+  crearSonidoAgua();    
+  crearZumbidoAbejas();
+  crearAvesAmbiente();
 
-  // Trinos de pájaros periódicos
-  setTimeout(function loop() {
-    if (audioCtx) {
-      trino();
-      setTimeout(loop, 2000 + Math.random() * 3000);
+}
+
+// ── SONIDO DEL LAGO (burbujeo + flujo suave) ──────────────────
+function crearSonidoAgua() {
+  if (!audioCtx) return;
+
+  var bufferSize = audioCtx.sampleRate * 3;
+  var buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  var data = buffer.getChannelData(0);
+
+  // Ruido marrón (brown noise) — mucho más grave y suave que blanco
+  // Cada muestra depende de la anterior → acumula graves, elimina agudos
+  var ultimo = 0;
+  for (var i = 0; i < bufferSize; i++) {
+    var blanco = Math.random() * 2 - 1;
+    data[i] = (ultimo + (0.02 * blanco)) / 1.02;
+    ultimo = data[i];
+    data[i] *= 3.5; // compensar el volumen perdido
+  }
+
+  var source = audioCtx.createBufferSource();
+  source.buffer = buffer;
+  source.loop = true;
+
+  // Filtro lowpass agresivo — elimina todo lo agudo que quede
+  var filtro = audioCtx.createBiquadFilter();
+  filtro.type = 'lowpass';
+  filtro.frequency.value = 180;
+  filtro.Q.value = 0.5;
+
+  var ganancia = audioCtx.createGain();
+  ganancia.gain.value = 0.07;
+
+  source.connect(filtro);
+  filtro.connect(ganancia);
+  ganancia.connect(audioCtx.destination);
+  source.start();
+
+  sonidosActivos.push(source);
+}
+
+// ── ZUMBIDO DE ABEJAS (estéreo simulado) ─────────────────────
+function crearZumbidoAbejas() {
+  if (!audioCtx) return;
+
+  function zumbidoBreve() {
+    if (!audioCtx) return;
+
+    try {
+      var osc = audioCtx.createOscillator();
+      var gan = audioCtx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.value = 190 + Math.random() * 60;
+
+      var duracion = 0.5 + Math.random() * 0.9;
+
+      gan.gain.setValueAtTime(0, audioCtx.currentTime);
+      gan.gain.linearRampToValueAtTime(0.022, audioCtx.currentTime + 0.1);
+      gan.gain.linearRampToValueAtTime(0.022, audioCtx.currentTime + duracion - 0.12);
+      gan.gain.linearRampToValueAtTime(0, audioCtx.currentTime + duracion);
+
+      osc.connect(gan);
+      gan.connect(audioCtx.destination);
+      osc.start(audioCtx.currentTime);
+      osc.stop(audioCtx.currentTime + duracion + 0.05);
+
+    } catch(e) {
+      console.log('Abeja skip:', e);
     }
-  }, 1000);
+
+    // Siempre programa el siguiente, aunque este falle
+    setTimeout(zumbidoBreve, 1500 + Math.random() * 3500);
+  }
+
+  setTimeout(zumbidoBreve, 600);
+}
+
+// ── AVES AMBIENTE (más naturales que los trinos anteriores) ───
+function crearAvesAmbiente() {
+  if (!audioCtx) return;
+
+  function grupoPajaros() {
+    if (!audioCtx) return;
+
+    // Cada canto: frecuencia base, número de notas, velocidad
+    var cantos = [
+      // Canto 1: "pío pío" clásico — dos notas ascendentes
+      [[1800, 2200], 0.06, 0.07],
+      // Canto 2: trino descendente — jilguero
+      [[2400, 2100, 1900, 2000], 0.05, 0.06],
+      // Canto 3: silbido largo único — mirlo
+      [[1600, 1900, 2100, 1800], 0.07, 0.14],
+      // Canto 4: gorjeo rápido — gorrión
+      [[2000, 2300, 2000, 2300, 1900], 0.04, 0.05],
+    ];
+
+    var canto = cantos[Math.floor(Math.random() * cantos.length)];
+    var notas = canto[0];
+    var vol   = canto[1];
+    var dur   = canto[2];
+
+    notas.forEach(function(freq, i) {
+      setTimeout(function() {
+        if (!audioCtx) return;
+
+        // Tres osciladores por nota: fundamental + 2 armónicos
+        // Esto da el "cuerpo" que hace que suene a pájaro real
+        var frecuencias = [freq, freq * 2, freq * 3];
+        var volumenes   = [1.0,  0.25,     0.08];
+
+        frecuencias.forEach(function(f, k) {
+          var osc = audioCtx.createOscillator();
+          var gan = audioCtx.createGain();
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(f * 1.02, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime( // exponencial → más natural
+            f * 0.97,
+            audioCtx.currentTime + dur
+          );
+
+          var volNota = vol * volumenes[k];
+          gan.gain.setValueAtTime(0, audioCtx.currentTime);
+          gan.gain.linearRampToValueAtTime(volNota, audioCtx.currentTime + 0.008);
+          gan.gain.linearRampToValueAtTime(volNota * 0.7, audioCtx.currentTime + dur * 0.5);
+          gan.gain.linearRampToValueAtTime(0, audioCtx.currentTime + dur);
+
+          osc.connect(gan);
+          gan.connect(audioCtx.destination);
+          osc.start(audioCtx.currentTime);
+          osc.stop(audioCtx.currentTime + dur + 0.02);
+        });
+
+      }, i * (dur * 1000 + 25));
+    });
+
+    setTimeout(grupoPajaros, 2500 + Math.random() * 4500);
+  }
+
+  setTimeout(grupoPajaros, 800);
+}
+
+// Helper: reproduce una secuencia de notas como canto de ave
+function cantarAve(notas, volumen, duracion) {
+  if (!audioCtx) return;
+
+  notas.forEach(function(frecuencia, i) {
+    setTimeout(function() {
+      if (!audioCtx) return;
+
+      // Oscilador principal
+      var osc1 = audioCtx.createOscillator();
+      osc1.type = 'triangle'; // Más cálido que sine
+
+      // Segundo oscilador ligeramente desafinado → da cuerpo y textura
+      var osc2 = audioCtx.createOscillator();
+      osc2.type = 'sine';
+      osc2.frequency.value = frecuencia * 1.003; // Apenas desafinado
+
+      // Glissando más pronunciado → más expresivo
+      osc1.frequency.setValueAtTime(frecuencia * 1.04, audioCtx.currentTime);
+      osc1.frequency.linearRampToValueAtTime(
+        frecuencia * 0.96,
+        audioCtx.currentTime + duracion
+      );
+      osc2.frequency.setValueAtTime(frecuencia * 1.04 * 1.003, audioCtx.currentTime);
+      osc2.frequency.linearRampToValueAtTime(
+        frecuencia * 0.96 * 1.003,
+        audioCtx.currentTime + duracion
+      );
+
+      var gan1 = audioCtx.createGain();
+      var gan2 = audioCtx.createGain();
+      gan2.gain.value = 0.3; // osc2 más suave, solo da textura
+
+      // Envolvente con vibrato al final — como un ave real
+      var ganMaster = audioCtx.createGain();
+      ganMaster.gain.setValueAtTime(0, audioCtx.currentTime);
+      ganMaster.gain.linearRampToValueAtTime(volumen, audioCtx.currentTime + 0.02);
+      ganMaster.gain.setValueAtTime(volumen, audioCtx.currentTime + duracion * 0.6);
+      ganMaster.gain.linearRampToValueAtTime(0, audioCtx.currentTime + duracion);
+
+      osc1.connect(gan1);
+      osc2.connect(gan2);
+      gan1.connect(ganMaster);
+      gan2.connect(ganMaster);
+      ganMaster.connect(audioCtx.destination);
+
+      osc1.start(audioCtx.currentTime);
+      osc2.start(audioCtx.currentTime);
+      osc1.stop(audioCtx.currentTime + duracion + 0.05);
+      osc2.stop(audioCtx.currentTime + duracion + 0.05);
+
+    }, i * (duracion * 900 + 40));
+  });
 }
 
 function crearViento() {
@@ -107,35 +299,39 @@ function crearViento() {
 function trino() {
   if (!audioCtx) return;
 
-  var notas = [523, 659, 784, 880, 1047]; // Do, Mi, Sol, La, Do alto
-  var cantidad = 3 + Math.floor(Math.random() * 4);
+  var patrones = [
+    { notas: [780, 720, 650, 600], dur: 0.18, vol: 0.07 },
+    { notas: [1100, 1300, 1050, 1250, 980], dur: 0.09, vol: 0.06 },
+    { notas: [520, 680, 850, 720, 580], dur: 0.22, vol: 0.08 },
+  ];
 
-  for (var i = 0; i < cantidad; i++) {
-    (function (delay) {
-      setTimeout(function () {
-        var osc = audioCtx.createOscillator();
-        var gan = audioCtx.createGain();
+  var patron = patrones[Math.floor(Math.random() * patrones.length)];
 
-        osc.type = 'sine';
-        osc.frequency.value = notas[Math.floor(Math.random() * notas.length)];
+  patron.notas.forEach(function(frecuencia, i) {
+    setTimeout(function() {
+      if (!audioCtx) return;
 
-        // Glissando ligero
-        osc.frequency.linearRampToValueAtTime(
-          osc.frequency.value * (0.95 + Math.random() * 0.1),
-          audioCtx.currentTime + 0.1
-        );
+      var osc = audioCtx.createOscillator();
+      var gan = audioCtx.createGain();
 
-        gan.gain.setValueAtTime(0, audioCtx.currentTime);
-        gan.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 0.02);
-        gan.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.18);
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(frecuencia, audioCtx.currentTime);
+      osc.frequency.linearRampToValueAtTime(
+        frecuencia * (0.93 + Math.random() * 0.1),
+        audioCtx.currentTime + patron.dur
+      );
 
-        osc.connect(gan);
-        gan.connect(audioCtx.destination);
-        osc.start(audioCtx.currentTime);
-        osc.stop(audioCtx.currentTime + 0.2);
-      }, delay);
-    })(i * (80 + Math.random() * 120));
-  }
+      gan.gain.setValueAtTime(0, audioCtx.currentTime);
+      gan.gain.linearRampToValueAtTime(patron.vol, audioCtx.currentTime + 0.015);
+      gan.gain.linearRampToValueAtTime(0, audioCtx.currentTime + patron.dur * 0.9);
+
+      osc.connect(gan);
+      gan.connect(audioCtx.destination);
+      osc.start(audioCtx.currentTime);
+      osc.stop(audioCtx.currentTime + patron.dur + 0.05);
+
+    }, i * (patron.dur * 900));
+  });
 }
 
 // ---------- UI pequeña de instrucción ----------
