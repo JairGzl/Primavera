@@ -91,9 +91,10 @@ function initEscena() {
   crearArbol(0,   0, -15, 1.4);
   crearArbol(8,   0, -20, 0.9);
   crearArbol(-8,  0, -18, 1.2);
+  
 
   // --- Flores ---
-  for (var f = 0; f < 50; f++) {
+  for (var f = 0; f < 150; f++) {
   var fx = (Math.random() - 0.5) * 24;
   var fz = (Math.random() - 0.5) * 24;
   var dx = fx - 0;   // LAGO_X
