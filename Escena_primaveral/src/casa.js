@@ -197,6 +197,7 @@ function crearCasa(x, z) {
   // =========================================================
   // POSICIÓN FINAL
   // =========================================================
+  grupo.rotation.y = Math.PI;
   grupo.position.set(x, yTerreno, z);
   scene.add(grupo);
   return grupo;
