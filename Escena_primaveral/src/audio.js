@@ -63,11 +63,38 @@ function crearViento() {
 
   var filtro = audioCtx.createBiquadFilter();
   filtro.type = 'bandpass';
-  filtro.frequency.value = 400;
-  filtro.Q.value = 0.3;
+  filtro.frequency.value = 100;
+  filtro.Q.value = 0.8;
 
   var ganancia = audioCtx.createGain();
-  ganancia.gain.value = 0.08;
+  ganancia.gain.value = 0.12;
+
+  // ── 4. LFO DE FRECUENCIA (cambia el tono del viento) ─────────
+  // Oscila lento (0.15 Hz = una ola cada ~7 segundos)
+  // Mueve la frecuencia del filtro entre 40Hz y 160Hz
+  var lfoFrecuencia = audioCtx.createOscillator();
+  lfoFrecuencia.type = 'sine';
+  lfoFrecuencia.frequency.value = 0.15;
+
+  var profundidadFrecuencia = audioCtx.createGain();
+  profundidadFrecuencia.gain.value = 60; // base 100 ± 60 → entre 40 y 160 Hz
+
+  lfoFrecuencia.connect(profundidadFrecuencia);
+  profundidadFrecuencia.connect(filtro.frequency); // controla el tono
+  lfoFrecuencia.start();
+
+  // ── 5. LFO DE VOLUMEN (simula ráfagas de viento) ─────────────
+  // Más lento aún (0.08 Hz = una ráfaga cada ~12 segundos)
+  var lfoVolumen = audioCtx.createOscillator();
+  lfoVolumen.type = 'sine';
+  lfoVolumen.frequency.value = 0.08;
+
+  var profundidadVolumen = audioCtx.createGain();
+  profundidadVolumen.gain.value = 0.06; // volumen oscila: 0.12 ± 0.06
+
+  lfoVolumen.connect(profundidadVolumen);
+  profundidadVolumen.connect(ganancia.gain); // controla el volumen
+  lfoVolumen.start();
 
   source.connect(filtro);
   filtro.connect(ganancia);

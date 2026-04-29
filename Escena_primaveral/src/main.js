@@ -94,12 +94,14 @@ function initEscena() {
 
   // --- Flores ---
   for (var f = 0; f < 50; f++) {
-    crearFlor(
-      (Math.random() - 0.5) * 24,
-      0,
-      (Math.random() - 0.5) * 24
-    );
+  var fx = (Math.random() - 0.5) * 24;
+  var fz = (Math.random() - 0.5) * 24;
+  var dx = fx - 0;   // LAGO_X
+  var dz = fz - 6;   // LAGO_Z
+  if (Math.sqrt(dx * dx + dz * dz) > 4.0) {
+    crearFlor(fx, 0, fz);
   }
+}
 
   // --- Nubes ---
   nubes.push(crearNube(  0, 12, -22));

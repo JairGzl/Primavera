@@ -36,6 +36,7 @@
   <script src="efectos.js"></script>
   <script src="audio.js"></script>
   <script src="cesped.js"></script>
+  <script src="lago.js"></script>
 
   <!-- Arrancar la escena -->
   <script>
@@ -45,6 +46,7 @@
     initEfectos();      // Integrante 3: partículas y efectos
     initAudio();        // Integrante 4: sonido
     initCesped();
+    initLago();
 
     // Loop principal de animación
     function animate() {
@@ -53,6 +55,7 @@
       actualizarFauna();
       actualizarEfectos();
       animarNubes(delta);           // ← agregar esta línea
+      updateLago(clock.getElapsedTime());
       renderer.render(scene, camera);
     } 
     animate();
