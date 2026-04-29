@@ -69,6 +69,10 @@ function initLago() {
     crearNenufar(LAGO_X + n[0], LAGO_Y + 0.06, LAGO_Z + n[1]);
   });
 
+  // ── 5. PATITO AMARILLO ────────────────────────────────────────
+  crearPato(LAGO_X + 0.5, LAGO_Y + 0.12, LAGO_Z - 0.5);
+
+
   console.log('[Lago] Lago natural creado');
 }
 
@@ -182,4 +186,115 @@ function updateLago(t) {
   var onda = 1 + Math.sin(t * 0.7) * 0.015;
   ondasMesh.scale.set(onda, 1, onda);
   ondasMesh.material.opacity = 0.72 + Math.sin(t * 1.1) * 0.1;
+
+  // Animar pato
+  scene.traverse(function(obj) {
+    if (!obj.userData || !obj.userData.velocidad) return;
+    var off = obj.userData.offsetFase;
+    var r   = obj.userData.radio;
+    var v   = obj.userData.velocidad;
+
+    // Nada en círculo dentro del lago
+    obj.position.x = obj.userData.centroX + Math.sin(t * v + off) * r;
+    obj.position.z = obj.userData.centroZ + Math.cos(t * v + off) * r;
+
+    // Orientar hacia donde nada
+    var dx =  Math.cos(t * v + off);
+    var dz = -Math.sin(t * v + off);
+    obj.rotation.y = Math.atan2(dx, dz);
+
+    // Balanceo suave (como flotando en el agua)
+    obj.rotation.z = Math.sin(t * 1.8 + off) * 0.08;
+
+    // Cabeceo de la cabeza
+    if (obj.userData.cabeza) {
+      obj.userData.cabeza.rotation.x = Math.sin(t * 1.2 + off) * 0.12;
+    }
+
+    // Colita menea
+    if (obj.userData.cola) {
+      obj.userData.cola.rotation.z = Math.sin(t * 3.0 + off) * 0.2;
+    }
+  });
+}
+
+function crearPato(x, y, z) {
+  var grupo = new THREE.Group();
+
+  var matAmarillo = new THREE.MeshLambertMaterial({ color: 0xFFD700 });
+  var matNaranja  = new THREE.MeshLambertMaterial({ color: 0xFF8C00 });
+  var matOjo      = new THREE.MeshLambertMaterial({ color: 0x111111 });
+  var matBlanco   = new THREE.MeshLambertMaterial({ color: 0xFFFFFF });
+
+  // === CUERPO ===
+  var cuerpoGeo = new THREE.SphereGeometry(0.35, 10, 10);
+  var cuerpo    = new THREE.Mesh(cuerpoGeo, matAmarillo);
+  cuerpo.scale.set(1.0, 0.65, 1.4);
+  grupo.add(cuerpo);
+
+  // === CABEZA ===
+  var cabezaGeo = new THREE.SphereGeometry(0.20, 10, 10);
+  var cabeza    = new THREE.Mesh(cabezaGeo, matAmarillo);
+  cabeza.position.set(0, 0.28, 0.30);
+  grupo.add(cabeza);
+
+  // === PICO ===
+  var picoGeo = new THREE.CylinderGeometry(0.035, 0.055, 0.15, 6);
+  var pico    = new THREE.Mesh(picoGeo, matNaranja);
+  pico.rotation.x = Math.PI / 2;
+  pico.position.set(0, 0.25, 0.52);
+  grupo.add(pico);
+
+  // === OJO izquierdo y derecho ===
+  [-0.055, 0.055].forEach(function(xO) {
+    var ojoGeo = new THREE.SphereGeometry(0.028, 6, 6);
+    var ojo    = new THREE.Mesh(ojoGeo, matOjo);
+    ojo.position.set(xO, 0.35, 0.46);
+    grupo.add(ojo);
+
+    // Brillo del ojo
+    var brilloGeo = new THREE.SphereGeometry(0.015, 5, 5);
+    var brillo    = new THREE.Mesh(brilloGeo, matBlanco);
+    brillo.position.set(xO + 0.008, 0.36, 0.475);
+    grupo.add(brillo);
+  });
+
+  // === ALAS (ligeramente levantadas) ===
+  var alaGeo = new THREE.SphereGeometry(0.12, 7, 7);
+  [-1, 1].forEach(function(lado) {
+    var ala = new THREE.Mesh(alaGeo, matAmarillo);
+    ala.scale.set(0.35, 0.55, 0.9);
+    ala.position.set(lado * 0.32, 0.06, 0);
+    ala.rotation.z = lado * 0.3;
+    grupo.add(ala);
+  });
+
+  // === COLA (pequeño triángulo levantado) ===
+  var colaGeo = new THREE.ConeGeometry(0.11, 0.22, 5);
+  var cola    = new THREE.Mesh(colaGeo, matAmarillo);
+  cola.position.set(0, 0.18, -0.42);
+  cola.rotation.x = -0.8;
+  grupo.add(cola);
+
+  // === PATAS (solo visibles en el borde del agua) ===
+  var pataGeo = new THREE.CylinderGeometry(0.015, 0.015, 0.1, 5);
+  [-0.07, 0.07].forEach(function(xP) {
+    var pata = new THREE.Mesh(pataGeo, matNaranja);
+    pata.position.set(xP, -0.22, 0.05);
+    grupo.add(pata);
+  });
+
+  grupo.position.set(x, y, z);
+  scene.add(grupo);
+
+  // Guardar datos para animación
+  grupo.userData.offsetFase = Math.random() * Math.PI * 2;
+  grupo.userData.radio      = 0.8 + Math.random() * 0.6;
+  grupo.userData.velocidad  = 0.18 + Math.random() * 0.1;
+  grupo.userData.centroX    = LAGO_X;
+  grupo.userData.centroZ    = LAGO_Z;
+  grupo.userData.cabeza     = cabeza;
+  grupo.userData.cola       = cola;
+
+  return grupo;
 }
