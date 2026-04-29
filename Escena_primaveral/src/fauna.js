@@ -2,7 +2,7 @@
 //  INTEGRANTE 2 — Fauna y personajes animados
 // ============================================================
 //  fauna.js — Fauna animada para Escena Primaveral 3D
-//  Incluye: mariposas, abejas y pájaros con movimiento orgánico
+//  Incluye: mariposas, abejas, pájaros y conejos con movimiento orgánico
 //  Usa THREE.Group + clock.getElapsedTime() para animación fluida
 // ============================================================
 
@@ -10,6 +10,7 @@
 var mariposas = [];
 var abejas = [];
 var pajaros = [];
+var conejos = [];  // ← NUEVO
 
 // Paletas de colores vibrantes para las mariposas
 var COLORES_MARIPOSA = [
@@ -26,42 +27,59 @@ var COLORES_MARIPOSA = [
 // ============================================================
 function initFauna() {
 
- // --- Mariposas (12 unidades) ---  ← antes: 6
+  // --- Mariposas (12 unidades) ---
   for (var i = 0; i < 12; i++) {
     var m = crearMariposa(
       (Math.random() - 0.5) * 18,
       2.0 + Math.random() * 2.5,
       (Math.random() - 0.5) * 18
     );
-    m.radioOrbita = 4.0 + i * 0.8;
-    m.velocidadOrbita = 0.35 + i * 0.05;        // ← ajustado para 12 bichos
-    m.offsetFase = i * (Math.PI * 2 / 12);       // ← distribuir 12 fases
+    m.radioOrbita = 7.0 + i * 1.0;
+    m.velocidadOrbita = 0.35 + i * 0.05;
+    m.offsetFase = i * (Math.PI * 2 / 12);
     m.velocidadAleteo = 7 + Math.random() * 4;
     m.amplitudVertical = 0.3 + Math.random() * 0.4;
-    m.centroX = (Math.random() - 0.5) * 16;
-    m.centroZ = (Math.random() - 0.5) * 16;
+    m.centroX = (Math.random() - 0.5) * 28;
+    m.centroZ = (Math.random() - 0.5) * 28;
     mariposas.push(m);
   }
 
-
-  // --- Abejas (10 unidades) ---  ← antes: 5
+  // --- Abejas (10 unidades) ---
   for (var j = 0; j < 10; j++) {
     var a = crearAbeja(
       (Math.random() - 0.5) * 14,
       0.8 + Math.random() * 1.5,
       (Math.random() - 0.5) * 14
     );
-    a.offsetFase = j * 1.1;                      // ← ajustado para 10 bichos
+    a.offsetFase = j * 1.1;
     a.velocidadX = 0.6 + Math.random() * 0.4;
     a.velocidadZ = 0.5 + Math.random() * 0.3;
-    a.radioX = 5.0 + Math.random() * 3.0;
-    a.radioZ = 4.5 + Math.random() * 3.0;
-    a.centroX = (Math.random() - 0.5) * 12;
-    a.centroZ = (Math.random() - 0.5) * 12;
+    a.radioX = 8.0 + Math.random() * 5.0;
+    a.radioZ = 7.0 + Math.random() * 5.0;
+    a.centroX = (Math.random() - 0.5) * 22;
+    a.centroZ = (Math.random() - 0.5) * 22;
     abejas.push(a);
   }
+
   // --- Pájaros (una bandada de 4 en formación) ---
-  crearBandada(4, 0, 5, 0); // x=0, y=5 (altura), z=0 (centro)
+  crearBandada(4, 0, 5, 0);
+
+  // --- Conejos (4 unidades saltando por el campo) ---  ← NUEVO
+  for (var c = 0; c < 4; c++) { 
+    var conejo = crearConejo(
+      (Math.random() - 0.5) * 12,
+      0,
+      (Math.random() - 0.5) * 12
+    );
+    conejo.offsetFase  = c * (Math.PI / 2);
+    conejo.velocidadX  = 0.28 + Math.random() * 0.15;
+    conejo.velocidadZ  = 0.22 + Math.random() * 0.12;
+    conejo.radioX  = 8.0  + Math.random() * 6.0;
+    conejo.radioZ  = 7.0  + Math.random() * 5.0;
+    conejo.centroX = (Math.random() - 0.5) * 18;
+    conejo.centroZ = (Math.random() - 0.5) * 18;
+    conejos.push(conejo);
+  }
 }
 
 // ============================================================
@@ -78,29 +96,23 @@ function actualizarFauna() {
 
   // ---- Animar mariposas ----
   mariposas.forEach(function (m, i) {
-    // Trayectoria: espiral ovalada alrededor de su punto central
     var px = m.centroX + Math.sin(t * m.velocidadOrbita + m.offsetFase) * m.radioOrbita;
     var pz = m.centroZ + Math.cos(t * m.velocidadOrbita * 0.8 + m.offsetFase) * m.radioOrbita * 0.7;
-    // Oscilación vertical suave (simula corrientes de aire)
     var py = 2.2 + m.amplitudVertical * Math.sin(t * 1.8 + m.offsetFase);
 
     m.grupo.position.set(px, py, pz);
 
-    // Orientar hacia la dirección de movimiento calculando la derivada
     var dx = Math.cos(t * m.velocidadOrbita + m.offsetFase) * m.velocidadOrbita;
     var dz = -Math.sin(t * m.velocidadOrbita * 0.8 + m.offsetFase) * m.velocidadOrbita * 0.7;
     m.grupo.rotation.y = Math.atan2(dx, dz);
 
-    // Leve inclinación lateral según la curva (sensación de giro real)
     m.grupo.rotation.z = Math.sin(t * m.velocidadOrbita + m.offsetFase) * 0.25;
 
-    // Aleteo: las alas se pliegan y despliegan (scale.x va de 0.1 a 1.0)
     var aleteo = (Math.sin(t * m.velocidadAleteo + m.offsetFase) + 1) / 2;
-    aleteo = Math.max(0.08, aleteo); // Mínimo 8% para no desaparecer
+    aleteo = Math.max(0.08, aleteo);
     m.alaIzq.scale.x = aleteo;
     m.alaDer.scale.x = aleteo;
 
-    // Pequeña rotación de alas (ángulo de ataque)
     var anguloAla = aleteo * 0.4;
     m.alaIzq.rotation.y = anguloAla;
     m.alaDer.rotation.y = -anguloAla;
@@ -110,31 +122,26 @@ function actualizarFauna() {
   abejas.forEach(function (a, i) {
     var off = a.offsetFase;
 
-    // Movimiento de Lissajous modificado → trayectoria errática realista
     var px = a.centroX
       + Math.sin(t * a.velocidadX + off) * a.radioX
-      + Math.sin(t * 2.3 + off * 1.5) * 0.5; // Micro-zigzag
+      + Math.sin(t * 2.3 + off * 1.5) * 0.5;
 
     var pz = a.centroZ
       + Math.cos(t * a.velocidadZ + off) * a.radioZ
       + Math.cos(t * 1.9 + off * 0.8) * 0.5;
 
-    // Pequeños saltos verticales (búsqueda de flor)
     var py = 0.9 + Math.abs(Math.sin(t * 2.5 + off)) * 0.8;
 
     a.grupo.position.set(px, py, pz);
 
-    // Girar hacia donde va
     var dx = Math.cos(t * a.velocidadX + off);
     var dz = -Math.sin(t * a.velocidadZ + off);
     a.grupo.rotation.y = Math.atan2(dx, dz);
 
-    // Vibración rápida de alas (frecuencia alta como abeja real)
     var vibracion = Math.sin(t * 28 + off) * 0.5 + 0.5;
     a.ala1.scale.x = 0.7 + vibracion * 0.3;
     a.ala2.scale.x = 0.7 + vibracion * 0.3;
 
-    // Leve movimiento de "zumbido" en el cuerpo
     a.cuerpo.position.y = Math.sin(t * 28 + off) * 0.005;
   });
 
@@ -142,8 +149,6 @@ function actualizarFauna() {
   pajaros.forEach(function (p, i) {
     var off = p.offsetFase;
 
-    // Los pájaros vuelan en formación "V" atravesando la escena
-    // Cada pájaro sigue la misma trayectoria pero con retraso de fase
     var velocidadVuelo = 1.2;
     var px = Math.sin(t * 0.18 + off) * 20;
     var pz = Math.cos(t * 0.12 + off) * 15 + p.offsetFormacion * 1.5;
@@ -151,15 +156,50 @@ function actualizarFauna() {
 
     p.grupo.position.set(px, py, pz);
 
-    // Orientar hacia la dirección de vuelo
     var dx = Math.cos(t * 0.18 + off) * 0.18;
     var dz = -Math.sin(t * 0.12 + off) * 0.12;
     p.grupo.rotation.y = Math.atan2(dx, dz);
 
-    // Aleteo suave (más lento que mariposas)
     var aleteo = Math.sin(t * 4.5 + off) * 0.5 + 0.5;
     p.alaIzq.rotation.z = aleteo * 0.6 + 0.1;
     p.alaDer.rotation.z = -(aleteo * 0.6 + 0.1);
+  });
+
+  // ---- Animar conejos ----  ← NUEVO
+  conejos.forEach(function (c) {
+    var off = c.offsetFase;
+
+    var px = c.centroX + Math.sin(t * c.velocidadX + off) * c.radioX;
+    var pz = c.centroZ + Math.cos(t * c.velocidadZ + off) * c.radioZ;
+
+    // Saltos: arco parabólico, toca el suelo entre cada salto
+    var cicloSalto = t * 2.8 + off;
+    var py = Math.abs(Math.sin(cicloSalto)) * 1.1;
+
+    c.grupo.position.set(px, py, pz);
+
+    // Orientar hacia donde se mueve
+    var dx =  Math.cos(t * c.velocidadX + off) * c.velocidadX;
+    var dz = -Math.sin(t * c.velocidadZ + off) * c.velocidadZ;
+    c.grupo.rotation.y = Math.atan2(dx, dz);
+
+    // Orejas: se inclinan según la fase del salto
+    var faseOreja = Math.sin(cicloSalto);
+    c.orejaIzq.rotation.x = faseOreja * 0.35;
+    c.orejaDer.rotation.x = faseOreja * 0.35;
+
+    // Patas traseras: se estiran en el punto más alto
+    var estiramiento = Math.abs(Math.sin(cicloSalto));
+    c.pataTraseraIzq.rotation.x = -estiramiento * 0.7;
+    c.pataTraseraDer.rotation.x = -estiramiento * 0.7;
+
+    // Cuerpo: squash & stretch al aterrizar
+    var aterrizaje = 1.0 - estiramiento * 0.15;
+    c.cuerpo.scale.y = aterrizaje;
+    c.cuerpo.scale.z = 1.0 + (1.0 - aterrizaje) * 0.5;
+
+    // Colita: meneo continuo e independiente
+    c.cola.rotation.z = Math.sin(t * 5.5 + off) * 0.25;
   });
 }
 
@@ -169,13 +209,10 @@ function actualizarFauna() {
 
 /**
  * crearMariposa(x, y, z)
- * Crea una mariposa con alas en forma de elipse doble y cuerpo segmentado.
- * Retorna un objeto con { grupo, alaIzq, alaDer } para animarlas.
  */
 function crearMariposa(x, y, z) {
   var grupo = new THREE.Group();
 
-  // Seleccionar colores aleatorios de la paleta
   var paleta = COLORES_MARIPOSA[Math.floor(Math.random() * COLORES_MARIPOSA.length)];
 
   var matAla = new THREE.MeshLambertMaterial({
@@ -185,14 +222,11 @@ function crearMariposa(x, y, z) {
     opacity: 0.88
   });
 
-  // === ALA SUPERIOR IZQUIERDA (más grande) ===
-  // Usamos EllipseCurve + ShapeGeometry para alas con forma real
   var formaAlaSup = new THREE.Shape();
   formaAlaSup.moveTo(0, 0);
   formaAlaSup.bezierCurveTo(-0.6, 0.1, -0.75, 0.55, -0.4, 0.7);
   formaAlaSup.bezierCurveTo(-0.15, 0.82, 0, 0.5, 0, 0);
 
-  // === ALA INFERIOR IZQUIERDA (más pequeña y redondeada) ===
   var formaAlaInf = new THREE.Shape();
   formaAlaInf.moveTo(0, 0);
   formaAlaInf.bezierCurveTo(-0.45, -0.05, -0.55, -0.4, -0.3, -0.55);
@@ -201,23 +235,19 @@ function crearMariposa(x, y, z) {
   var geoAlaSup = new THREE.ShapeGeometry(formaAlaSup);
   var geoAlaInf = new THREE.ShapeGeometry(formaAlaInf);
 
-  // Ala superior izquierda
   var alaSupIzq = new THREE.Mesh(geoAlaSup, matAla);
   alaSupIzq.position.set(-0.02, 0.05, 0);
 
-  // Ala inferior izquierda
   var alaInfIzq = new THREE.Mesh(geoAlaInf, matAla);
   alaInfIzq.position.set(-0.02, -0.02, 0);
 
-  // Agrupar lado izquierdo en un subgrupo (para animación conjunta)
   var grupoIzq = new THREE.Group();
   grupoIzq.add(alaSupIzq);
   grupoIzq.add(alaInfIzq);
   grupo.add(grupoIzq);
 
-  // Lado derecho: espejo del izquierdo
   var grupoDerechoContenedor = new THREE.Group();
-  grupoDerechoContenedor.scale.x = -1; // Espejo en X
+  grupoDerechoContenedor.scale.x = -1;
   var alaSupDer = new THREE.Mesh(geoAlaSup, matAla);
   alaSupDer.position.set(-0.02, 0.05, 0);
   var alaInfDer = new THREE.Mesh(geoAlaInf, matAla);
@@ -226,28 +256,23 @@ function crearMariposa(x, y, z) {
   grupoDerechoContenedor.add(alaInfDer);
   grupo.add(grupoDerechoContenedor);
 
-  // === CUERPO (tórax + abdomen segmentado) ===
   var matCuerpo = new THREE.MeshLambertMaterial({ color: 0x1a1a2e });
 
-  // Tórax (esfera pequeña en el centro)
   var toraxGeo = new THREE.SphereGeometry(0.06, 7, 7);
   var torax = new THREE.Mesh(toraxGeo, matCuerpo);
   torax.position.y = 0.05;
   grupo.add(torax);
 
-  // Abdomen (cilindro fino hacia abajo)
   var abdomenGeo = new THREE.CylinderGeometry(0.03, 0.045, 0.38, 6);
   var abdomen = new THREE.Mesh(abdomenGeo, matCuerpo);
   abdomen.position.y = -0.12;
   grupo.add(abdomen);
 
-  // Cabeza con ojos
   var cabezaGeo = new THREE.SphereGeometry(0.05, 7, 7);
   var cabeza = new THREE.Mesh(cabezaGeo, matCuerpo);
   cabeza.position.y = 0.13;
   grupo.add(cabeza);
 
-  // Antenas (líneas finas)
   var matAntena = new THREE.LineBasicMaterial({ color: 0x333333 });
   [-1, 1].forEach(function (lado) {
     var puntosAntena = [
@@ -258,7 +283,6 @@ function crearMariposa(x, y, z) {
     var antena = new THREE.Line(geoAntena, matAntena);
     grupo.add(antena);
 
-    // Bolita al final de la antena
     var bolGeo = new THREE.SphereGeometry(0.015, 5, 5);
     var bol = new THREE.Mesh(bolGeo, new THREE.MeshLambertMaterial({ color: paleta.patron }));
     bol.position.set(lado * 0.08, 0.29, 0.02);
@@ -268,7 +292,6 @@ function crearMariposa(x, y, z) {
   grupo.position.set(x, y, z);
   scene.add(grupo);
 
-  // Retornamos referencias a los subgrupos de alas para animarlos
   return {
     grupo: grupo,
     alaIzq: grupoIzq,
@@ -278,20 +301,16 @@ function crearMariposa(x, y, z) {
 
 /**
  * crearAbeja(x, y, z)
- * Crea una abeja con cuerpo rayado, alas transparentes y aguijón.
- * Retorna { grupo, cuerpo, ala1, ala2 } para animación.
  */
 function crearAbeja(x, y, z) {
   var grupo = new THREE.Group();
 
-  // === CUERPO (abdomen ovalado amarillo) ===
   var cuerpoGeo = new THREE.SphereGeometry(0.12, 10, 10);
   var cuerpoMat = new THREE.MeshLambertMaterial({ color: 0xFFCC00 });
   var cuerpo = new THREE.Mesh(cuerpoGeo, cuerpoMat);
-  cuerpo.scale.set(0.9, 0.85, 1.6); // Alargado horizontalmente
+  cuerpo.scale.set(0.9, 0.85, 1.6);
   grupo.add(cuerpo);
 
-  // === FRANJAS NEGRAS (toroides aplanados) ===
   var franjaMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
   [-0.05, 0.06].forEach(function (zOffset) {
     var franjaGeo = new THREE.TorusGeometry(0.10, 0.035, 6, 14);
@@ -302,7 +321,6 @@ function crearAbeja(x, y, z) {
     grupo.add(franja);
   });
 
-  // === TÓRAX (esfera más oscura al frente) ===
   var toraxGeo = new THREE.SphereGeometry(0.085, 8, 8);
   var toraxMat = new THREE.MeshLambertMaterial({ color: 0x553300 });
   var torax = new THREE.Mesh(toraxGeo, toraxMat);
@@ -310,14 +328,12 @@ function crearAbeja(x, y, z) {
   torax.scale.set(1, 0.9, 1.1);
   grupo.add(torax);
 
-  // === CABEZA ===
   var cabezaGeo = new THREE.SphereGeometry(0.07, 8, 8);
   var cabezaMat = new THREE.MeshLambertMaterial({ color: 0x222200 });
   var cabeza = new THREE.Mesh(cabezaGeo, cabezaMat);
   cabeza.position.z = 0.3;
   grupo.add(cabeza);
 
-  // Ojos compuestos (pequeñas esferas)
   var ojoMat = new THREE.MeshLambertMaterial({ color: 0x880000 });
   [-0.04, 0.04].forEach(function (xOjo) {
     var ojoGeo = new THREE.SphereGeometry(0.02, 5, 5);
@@ -326,7 +342,6 @@ function crearAbeja(x, y, z) {
     grupo.add(ojo);
   });
 
-  // === AGUIJÓN ===
   var aguijonGeo = new THREE.ConeGeometry(0.015, 0.08, 5);
   var aguijonMat = new THREE.MeshLambertMaterial({ color: 0x333300 });
   var aguijon = new THREE.Mesh(aguijonGeo, aguijonMat);
@@ -334,7 +349,6 @@ function crearAbeja(x, y, z) {
   aguijon.rotation.x = -Math.PI / 2;
   grupo.add(aguijon);
 
-  // === ALAS TRANSPARENTES ===
   var alaMat = new THREE.MeshLambertMaterial({
     color: 0xDDEEFF,
     transparent: true,
@@ -342,7 +356,6 @@ function crearAbeja(x, y, z) {
     side: THREE.DoubleSide
   });
 
-  // Forma de ala con curva Bézier
   var formaAla = new THREE.Shape();
   formaAla.moveTo(0, 0);
   formaAla.bezierCurveTo(0.05, 0.18, 0.28, 0.22, 0.32, 0.08);
@@ -355,14 +368,12 @@ function crearAbeja(x, y, z) {
   ala1.rotation.x = -0.3;
   grupo.add(ala1);
 
-  // Espejo para ala derecha
   var ala2 = new THREE.Mesh(geoAla, alaMat);
   ala2.position.set(-0.12, 0.1, 0.15);
   ala2.rotation.x = -0.3;
   ala2.scale.x = -1;
   grupo.add(ala2);
 
-  // Ala trasera (más pequeña)
   var formaAlaTras = new THREE.Shape();
   formaAlaTras.moveTo(0, 0);
   formaAlaTras.bezierCurveTo(0.04, 0.12, 0.2, 0.14, 0.22, 0.04);
@@ -387,27 +398,23 @@ function crearAbeja(x, y, z) {
 
 /**
  * crearBandada(cantidad, cx, cy, cz)
- * Crea una bandada de pájaros en formación "V" que sobrevuela la escena.
  */
 function crearBandada(cantidad, cx, cy, cz) {
   for (var i = 0; i < cantidad; i++) {
-    // Posición en formación V: cada pájaro desplazado lateralmente y en profundidad
     var lado = (i % 2 === 0 ? 1 : -1);
     var fila = Math.floor(i / 2) + 1;
     var xFormacion = lado * fila * 1.2;
     var zFormacion = fila * 0.9;
 
     var p = crearPajaro(cx + xFormacion, cy, cz + zFormacion);
-    p.offsetFase = i * 0.18;       // Fase de aleteo ligeramente distinta por pájaro
-    p.offsetFormacion = xFormacion; // Para mantener la formación en el movimiento
+    p.offsetFase = i * 0.18;
+    p.offsetFormacion = xFormacion;
     pajaros.push(p);
   }
 }
 
 /**
  * crearPajaro(x, y, z)
- * Crea un pájaro estilizado (silhouette minimalista).
- * Retorna { grupo, alaIzq, alaDer }.
  */
 function crearPajaro(x, y, z) {
   var grupo = new THREE.Group();
@@ -418,13 +425,11 @@ function crearPajaro(x, y, z) {
     side: THREE.DoubleSide
   });
 
-  // Cuerpo fusiforme (streamlined)
   var cuerpoGeo = new THREE.SphereGeometry(0.12, 8, 6);
   var cuerpo = new THREE.Mesh(cuerpoGeo, matCuerpo);
   cuerpo.scale.set(0.7, 0.6, 1.8);
   grupo.add(cuerpo);
 
-  // Cola en abanico
   var colaGeo = new THREE.ConeGeometry(0.09, 0.2, 4);
   var cola = new THREE.Mesh(colaGeo, matCuerpo);
   cola.position.z = -0.26;
@@ -432,14 +437,12 @@ function crearPajaro(x, y, z) {
   cola.scale.set(1, 0.3, 1);
   grupo.add(cola);
 
-  // Cabeza
   var cabezaGeo = new THREE.SphereGeometry(0.07, 7, 7);
   var cabeza = new THREE.Mesh(cabezaGeo, matCuerpo);
   cabeza.position.z = 0.22;
   cabeza.position.y = 0.03;
   grupo.add(cabeza);
 
-  // Pico
   var picoGeo = new THREE.ConeGeometry(0.012, 0.07, 5);
   var picoMat = new THREE.MeshLambertMaterial({ color: 0xF39C12 });
   var pico = new THREE.Mesh(picoGeo, picoMat);
@@ -447,7 +450,6 @@ function crearPajaro(x, y, z) {
   pico.rotation.x = Math.PI / 2;
   grupo.add(pico);
 
-  // Alas con forma curva
   var formaAla = new THREE.Shape();
   formaAla.moveTo(0, 0);
   formaAla.bezierCurveTo(0.1, 0.05, 0.45, 0.08, 0.55, 0);
@@ -470,4 +472,123 @@ function crearPajaro(x, y, z) {
   scene.add(grupo);
 
   return { grupo: grupo, alaIzq: alaIzq, alaDer: alaDer };
+}
+
+/**
+ * crearConejo(x, y, z)  ← NUEVO
+ * Conejo blanco y esponjoso con orejas largas, colita y patas animadas.
+ * Retorna { grupo, cuerpo, orejaIzq, orejaDer, pataTraseraIzq, pataTraseraDer, cola }
+ */
+function crearConejo(x, y, z) {
+  var grupo = new THREE.Group();
+
+  var matBlanco = new THREE.MeshLambertMaterial({ color: 0xFFFAF0 }); // Blanco cálido
+  var matRosa   = new THREE.MeshLambertMaterial({ color: 0xFFB6C1 }); // Rosa bebé
+  var matOjo    = new THREE.MeshLambertMaterial({ color: 0xFF69B4 }); // Ojos rosados
+  var matNariz  = new THREE.MeshLambertMaterial({ color: 0xFF9999 });
+
+  // === CUERPO ===
+  var cuerpoGeo = new THREE.SphereGeometry(0.38, 10, 10);
+  var cuerpo    = new THREE.Mesh(cuerpoGeo, matBlanco);
+  cuerpo.scale.set(1.0, 0.95, 1.2);
+  grupo.add(cuerpo);
+
+  // === CABEZA ===
+  var cabezaGeo = new THREE.SphereGeometry(0.26, 10, 10);
+  var cabeza    = new THREE.Mesh(cabezaGeo, matBlanco);
+  cabeza.position.set(0, 0.25, 0.18);
+  cabeza.scale.set(1.0, 0.95, 1.0);
+  grupo.add(cabeza);
+
+  // Mejillas rosadas
+  [-0.07, 0.07].forEach(function (xM) {
+    var mejillaGeo = new THREE.SphereGeometry(0.045, 7, 7);
+    var mejilla    = new THREE.Mesh(mejillaGeo, matRosa);
+    mejilla.position.set(xM, 0.22, 0.31);
+    grupo.add(mejilla);
+  });
+
+  // Nariz
+  var narizGeo = new THREE.SphereGeometry(0.025, 6, 6);
+  var nariz    = new THREE.Mesh(narizGeo, matNariz);
+  nariz.position.set(0, 0.245, 0.335);
+  nariz.scale.set(1.2, 0.7, 0.8);
+  grupo.add(nariz);
+
+  // Ojos con brillo
+  [-0.065, 0.065].forEach(function (xO) {
+    var ojoGeo = new THREE.SphereGeometry(0.028, 7, 7);
+    var ojo    = new THREE.Mesh(ojoGeo, matOjo);
+    ojo.position.set(xO, 0.29, 0.31);
+    grupo.add(ojo);
+
+    var brilloGeo = new THREE.SphereGeometry(0.009, 5, 5);
+    var brillo    = new THREE.Mesh(brilloGeo,
+                      new THREE.MeshLambertMaterial({ color: 0xFFFFFF }));
+    brillo.position.set(xO + 0.01, 0.298, 0.337);
+    grupo.add(brillo);
+  });
+
+  // === OREJAS ===
+  var orejaGeo = new THREE.CylinderGeometry(0.05, 0.035, 0.65, 8);
+  var orejaInterGeo = new THREE.CylinderGeometry(0.018, 0.012, 0.38, 8);
+
+  function hacerOreja(xPos) {
+    var orejaGrupo = new THREE.Group();
+    var orejaMesh  = new THREE.Mesh(orejaGeo, matBlanco);
+    orejaGrupo.add(orejaMesh);
+    var interior = new THREE.Mesh(orejaInterGeo, matRosa);
+    interior.position.z = 0.008;
+    orejaGrupo.add(interior);
+    orejaGrupo.position.set(xPos, 0.44, 0.18);
+    orejaGrupo.rotation.z = xPos * -2.2;
+    orejaGrupo.rotation.x = -0.15;
+    grupo.add(orejaGrupo);
+    return orejaGrupo;
+  }
+
+  var orejaIzq = hacerOreja(-0.075);
+  var orejaDer = hacerOreja( 0.075);
+
+  // === PATAS DELANTERAS ===
+  var pataGeo = new THREE.CylinderGeometry(0.065, 0.065, 0.28, 8);
+  [-0.12, 0.12].forEach(function (xP) {
+    var pata = new THREE.Mesh(pataGeo, matBlanco);
+    pata.position.set(xP, -0.16, 0.14);
+    pata.rotation.x = 0.4;
+    grupo.add(pata);
+  });
+
+  // === PATAS TRASERAS (más grandes, dan el impulso del salto) ===
+ var pataTGeo = new THREE.CylinderGeometry(0.085, 0.085, 0.34, 8);
+
+  var pataTraseraIzq = new THREE.Mesh(pataTGeo, matBlanco);
+  pataTraseraIzq.position.set(-0.13, -0.18, -0.08);
+  pataTraseraIzq.rotation.x = -0.3;
+  grupo.add(pataTraseraIzq);
+
+  var pataTraseraDer = new THREE.Mesh(pataTGeo, matBlanco);
+  pataTraseraDer.position.set( 0.13, -0.18, -0.08);
+  pataTraseraDer.rotation.x = -0.3;
+  grupo.add(pataTraseraDer);
+
+  // === COLITA ESPONJOSA ===
+  var colaGeo = new THREE.SphereGeometry(0.11, 8, 8);
+  var cola    = new THREE.Mesh(colaGeo, matBlanco);
+  cola.position.set(0, 0.02, -0.25);
+  cola.scale.set(1.1, 1.0, 0.85);
+  grupo.add(cola);
+
+  grupo.position.set(x, y, z);
+  scene.add(grupo);
+
+  return {
+    grupo          : grupo,
+    cuerpo         : cuerpo,
+    orejaIzq       : orejaIzq,
+    orejaDer       : orejaDer,
+    pataTraseraIzq : pataTraseraIzq,
+    pataTraseraDer : pataTraseraDer,
+    cola           : cola
+  };
 }
