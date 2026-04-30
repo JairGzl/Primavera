@@ -1,7 +1,7 @@
 // ============================================================
 //  INTEGRANTE 3 — Partículas y efectos visuales
 //  Pétalos cayendo, polen flotando, flores abriéndose
-// ============================================================
+// ============================================================lll
 
 var petalos = [];
 var polen = [];
