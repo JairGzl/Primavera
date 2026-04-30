@@ -234,7 +234,7 @@ function crearArbol(x, y, z, escala = 1.0) {
  
 // ============================================================
 //  FLOR MEJORADA — Con pétalos reales y centro
-// ============================================================
+// ============================================================l
  
 function crearFlor(x, y, z) {
   var grupo = new THREE.Group();
