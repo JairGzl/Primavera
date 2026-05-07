@@ -50,7 +50,7 @@ function crearSonidoAgua() {
   var buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
   var data = buffer.getChannelData(0);
 
-  // Ruido marrón (brown noise) — mucho más grave y suave que blanco
+  // Ruido mucho más grave y suave que blanco
   // Cada muestra depende de la anterior → acumula graves, elimina agudos
   var ultimo = 0;
   for (var i = 0; i < bufferSize; i++) {
@@ -153,7 +153,7 @@ function crearZumbidoAbejas() {
   setTimeout(buzzBreve, 600);
 }
 
-// ── AVES AMBIENTE (más naturales que los trinos anteriores) ───
+// ── AVES AMBIENTE ───
 function crearAvesAmbiente() {
   if (!audioCtx) return;
 
