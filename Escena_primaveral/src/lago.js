@@ -5,9 +5,9 @@
 
 var ondasMesh = null;
 
-var LAGO_X = 0;
-var LAGO_Z = 6;
-var LAGO_Y = 0.27;
+var LAGO_X = 0; // horizontal
+var LAGO_Z = 6;//profundidad
+var LAGO_Y = 0.27; //vertical
 
 function initLago() {
 
@@ -46,7 +46,7 @@ function initLago() {
   fondo.position.set(LAGO_X, LAGO_Y + 0.01, LAGO_Z);
   scene.add(fondo);
 
-  // ── 3. PIEDRAS ALREDEDOR DEL BORDE ───────────────────────────
+  // ── 3. PIEDRAS  ───────────────────────────
   var numPiedras = 14;
   for (var p = 0; p < numPiedras; p++) {
     var angPiedra = (p / numPiedras) * Math.PI * 2;
@@ -69,7 +69,7 @@ function initLago() {
     crearNenufar(LAGO_X + n[0], LAGO_Y + 0.06, LAGO_Z + n[1]);
   });
 
-  // ── 5. PATITO AMARILLO ────────────────────────────────────────
+  // ── 5. PATITO  ────────────────────────────────────────
   crearPato(LAGO_X + 0.5, LAGO_Y + 0.12, LAGO_Z - 0.5);
 
 
@@ -81,7 +81,7 @@ function crearPiedra(x, y, z) {
   // SphereGeometry deformada = piedra orgánica
   var geo = new THREE.SphereGeometry(
     0.18 + Math.random() * 0.18, // radio variable
-    6, 5
+    6, 5 //6 por 5 segmentos
   );
 
   // Deformar vértices para hacerla irregular
@@ -184,7 +184,7 @@ function crearNenufar(x, y, z) {
 function updateLago(t) {
   if (!ondasMesh) return;
   var onda = 1 + Math.sin(t * 0.7) * 0.015;
-  ondasMesh.scale.set(onda, 1, onda);
+  ondasMesh.scale.set(onda, 1, onda);//simula movimiento de ondas(muy leve)
   ondasMesh.material.opacity = 0.72 + Math.sin(t * 1.1) * 0.1;
 
   // Animar pato
