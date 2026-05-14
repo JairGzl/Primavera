@@ -109,8 +109,8 @@ var GRASS_CONFIG = {
   windStrength:  0.18,   // Amplitud del balanceo (0 = sin viento)
   windFrequency: 1.2,    // Velocidad de la onda de viento
   // Colores en formato [r,g,b] normalizados (0–1)
-  colorBase: new THREE.Color(0x2E6B1A), // Verde oscuro raíz
-  colorTip:  new THREE.Color(0x7DC95E), // Verde brillante punta
+colorBase: new THREE.Color(0x3D5220), // más oscuro que el base
+colorTip:  new THREE.Color(0x566A2A), // el color exacto del Minecraft
 };
 
 // ──────────────────────────────────────────────────────────────

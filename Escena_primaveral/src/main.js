@@ -10,8 +10,22 @@ function initEscena() {
 
   // --- Escena ---
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xB8E0F7); // Azul cielo pastel
-  scene.fog = new THREE.FogExp2(0xB8E0F7, 0.006);
+  // Cielo degradado — usamos un canvas como textura
+var canvas = document.createElement('canvas');
+canvas.width = 2;
+canvas.height = 512;
+var ctx = canvas.getContext('2d');
+var grad = ctx.createLinearGradient(0, 0, 0, 512);
+grad.addColorStop(0.0,  '#6B4FA0');  // morado oscuro arriba
+grad.addColorStop(0.3,  '#C4709A');  // rosa-morado
+grad.addColorStop(0.6,  '#F4A05A');  // naranja pastel
+grad.addColorStop(0.85, '#F9C49A');  // melocotón suave
+grad.addColorStop(1.0,  '#FDE8C8');  // crema en el horizonte
+ctx.fillStyle = grad;
+ctx.fillRect(0, 0, 2, 512);
+var skyTex = new THREE.CanvasTexture(canvas);
+scene.background = skyTex;
+scene.fog = new THREE.FogExp2(0xF4C5A0, 0.005); // niebla melocotón suave
 
   // --- Cámara ---
   camera = new THREE.PerspectiveCamera(
@@ -33,32 +47,50 @@ function initEscena() {
   document.body.appendChild(renderer.domElement);
 
   // --- Iluminación ---
-  // ✅ Sol blanco-amarillo suave (antes era naranja 0xFFCC88)
-  var sol = new THREE.DirectionalLight(0xFFFFDD, 1.2);
-  sol.position.set(20, 25, 10);
-  sol.castShadow = true;
-  sol.shadow.mapSize.width = 2048;
-  sol.shadow.mapSize.height = 2048;
-  sol.shadow.camera.near = 0.5;
-  sol.shadow.camera.far = 100;
-  sol.shadow.camera.left = -35;
-  sol.shadow.camera.right = 35;
-  sol.shadow.camera.top = 35;
-  sol.shadow.camera.bottom = -35;
-  scene.add(sol);
+ // Sol visible — más pequeño y suave
+var solGeo = new THREE.SphereGeometry(1.4, 16, 16);
+var solMat = new THREE.MeshBasicMaterial({ color: 0xFFE0A0 });
+var solMesh = new THREE.Mesh(solGeo, solMat);
+solMesh.position.set(30, 5, -45);
+scene.add(solMesh);
 
-  // Luz de relleno azul (sin cambios)
-  var luzRelleno = new THREE.DirectionalLight(0xAADDFF, 0.4);
-  luzRelleno.position.set(-15, 10, -10);
-  scene.add(luzRelleno);
+// Halo del sol
+var haloGeo = new THREE.SphereGeometry(2.8, 16, 16);
+var haloMat = new THREE.MeshBasicMaterial({
+  color: 0xFFBB77,
+  transparent: true,
+  opacity: 0.18
+});
+var halo = new THREE.Mesh(haloGeo, haloMat);
+halo.position.copy(solMesh.position);
+scene.add(halo);
 
-  // ✅ Luz ambiente blanca neutra (antes era naranja 0xFFE0C0 y muy fuerte 0.8)
-  var ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.5);
-  scene.add(ambientLight);
+// Luz direccional cálida pero suave
+var sol = new THREE.DirectionalLight(0xFFBB88, 1.0);
+sol.position.set(30, 5, -45);
+sol.castShadow = true;
+sol.shadow.mapSize.width = 2048;
+sol.shadow.mapSize.height = 2048;
+sol.shadow.camera.near = 0.5;
+sol.shadow.camera.far = 100;
+sol.shadow.camera.left = -35;
+sol.shadow.camera.right = 35;
+sol.shadow.camera.top = 35;
+sol.shadow.camera.bottom = -35;
+scene.add(sol);
 
-  // ✅ Hemisférica: cielo azul arriba / verde abajo (sin cambios, ya estaba bien)
-  var hemiLight = new THREE.HemisphereLight(0x87CEEB, 0x2E7D32, 0.9);
-  scene.add(hemiLight);
+// Luz de relleno morada (lado opuesto al sol)
+var luzRelleno = new THREE.DirectionalLight(0x9966BB, 0.4);
+luzRelleno.position.set(-15, 10, -10);
+scene.add(luzRelleno);
+
+// Ambiente rosado muy suave
+var ambientLight = new THREE.AmbientLight(0xFFAABB, 0.35);
+scene.add(ambientLight);
+
+// Hemisférica: rosa-morado arriba / tierra oscura abajo
+var hemiLight = new THREE.HemisphereLight(0xCC88AA, 0x221108, 0.7);
+scene.add(hemiLight);
 
   // --- Terreno verde ---
   var terrenoGeo = new THREE.PlaneGeometry(80, 80, 30, 30);
@@ -72,12 +104,11 @@ function initEscena() {
   }
   terrenoGeo.computeVertexNormals();
 
-  // ✅ Verde más saturado y emissive más visible
-  var terrenoMat = new THREE.MeshLambertMaterial({
-    color: 0x3A7D2C,
-    emissive: 0x1C4A10,
-    emissiveIntensity: 0.4  // ✅ Subido de 0.3 a 0.4
-  });
+var terrenoMat = new THREE.MeshLambertMaterial({
+  color: 0x566A2A,       // exactamente ese hex
+  emissive: 0x2A1020,
+  emissiveIntensity: 0.15
+});
   var terreno = new THREE.Mesh(terrenoGeo, terrenoMat);
   terreno.rotation.x = -Math.PI / 2;
   terreno.receiveShadow = true;
