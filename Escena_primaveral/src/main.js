@@ -84,7 +84,7 @@ function initEscena() {
   scene.add(terreno);
 
   // --- Árboles ---
-  crearArbol(5,   0, -5,  1.0);
+  crearArbol(100,   0, -5,  1.0);
   crearArbol(-6,  0, -8,  1.3);
   crearArbol(10,  0, -12, 0.8);
   crearArbol(-12, 0, -6,  1.1);
@@ -93,14 +93,23 @@ function initEscena() {
   crearArbol(-8,  0, -18, 1.2);
   
 
-  // --- Flores ---
-  for (var f = 0; f < 150; f++) {
-  var fx = (Math.random() - 0.5) * 24;
-  var fz = (Math.random() - 0.5) * 24;
-  var dx = fx - 0;   // LAGO_X
-  var dz = fz - 6;   // LAGO_Z
+ // --- Flores ---
+var tiposFlor = ['girasol', 'tulipan', 'rosa', 'margarita'];
+
+for (var f = 0; f < 200; f++) {
+  var fx = (Math.random() - 0.5) * 36;  // ±18 — bien dentro del terreno
+  var fz = (Math.random() - 0.5) * 36;
+
+  // Descartar flores muy lejos del centro
+  var distCentro = Math.sqrt(fx * fx + fz * fz);
+  if (distCentro > 17) continue;  // ✅ limita a un círculo de radio 17
+
+  var dx = fx - 0;
+  var dz = fz - 6;
   if (Math.sqrt(dx * dx + dz * dz) > 4.0) {
-    crearFlor(fx, 0, fz);
+    var tipo = tiposFlor[Math.floor(Math.random() * tiposFlor.length)];
+    var ySuelo = calcularYTerreno(fx, fz);
+    crearFlor(fx, ySuelo, fz, tipo);
   }
 }
 
@@ -236,73 +245,157 @@ function crearArbol(x, y, z, escala = 1.0) {
 //  FLOR MEJORADA — Con pétalos reales y centro
 // ============================================================
  
-function crearFlor(x, y, z) {
+function crearFlor(x, y, z, tipo) {
   var grupo = new THREE.Group();
- 
-  // Colores para los pétalos
-  var coloresPetalos = [
-    0xFF6B9D, // Rosa fuerte
-    0xFF69B4, // Rosa claro
-    0xFFD700, // Amarillo
-    0xFF4500, // Naranja-rojo
-    0xFFFFFF, // Blanco
-    0xDA70D6, // Orquídea
-    0xFF85A1, // Salmón
-  ];
-  var colorPetalo = coloresPetalos[Math.floor(Math.random() * coloresPetalos.length)];
-  var alturaFlor = 0.4 + Math.random() * 0.3;
- 
+  tipo = tipo || 'margarita';
+
+  var alturaFlor = 0.25 + Math.random() * 0.18;
+
   // --- Tallo ---
-  var talloGeo = new THREE.CylinderGeometry(0.025, 0.03, alturaFlor * 2, 6);
-  var talloMat = new THREE.MeshLambertMaterial({ color: 0x2E7D32 });
+  var talloGeo = new THREE.CylinderGeometry(0.03, 0.035, alturaFlor * 2, 6);
+  var talloMat = new THREE.MeshLambertMaterial({ color: 0x2E8B32 });
   var tallo = new THREE.Mesh(talloGeo, talloMat);
   tallo.position.y = alturaFlor;
-  tallo.receiveShadow = true;
   grupo.add(tallo);
- 
-  // --- Hojita lateral en el tallo ---
-  var hojaGeo = new THREE.SphereGeometry(0.12, 5, 4);
-  hojaGeo.scale(1.8, 0.4, 0.8); // Aplanar para que parezca hoja
-  var hojaMat = new THREE.MeshLambertMaterial({ color: 0x388E3C });
-  var hoja = new THREE.Mesh(hojaGeo, hojaMat);
-  hoja.position.set(0.15, alturaFlor * 0.6, 0);
-  hoja.rotation.z = 0.4;
+
+  // --- Hojita lateral ---
+  var hojaGeo = new THREE.SphereGeometry(0.14, 5, 4);
+  hojaGeo.scale(2.0, 0.4, 0.9);
+  var hoja = new THREE.Mesh(hojaGeo,
+    new THREE.MeshLambertMaterial({ color: 0x3A8C3F }));
+  hoja.position.set(0.18, alturaFlor * 0.55, 0);
+  hoja.rotation.z = 0.45;
   grupo.add(hoja);
- 
-  // --- Pétalos (6 elipses alrededor del centro) ---
-  var petalMat = new THREE.MeshLambertMaterial({ color: colorPetalo, side: THREE.DoubleSide });
-  var numPetalos = 6;
-  for (var i = 0; i < numPetalos; i++) {
-    var angulo = (i / numPetalos) * Math.PI * 2;
-    var petalGeo = new THREE.SphereGeometry(0.13, 6, 5);
-    petalGeo.scale(1.0, 0.35, 1.8); // Forma ovalada de pétalo
-    var petal = new THREE.Mesh(petalGeo, petalMat);
- 
-    // Posición alrededor del centro
-    petal.position.set(
-      Math.cos(angulo) * 0.18,
-      alturaFlor * 2,
-      Math.sin(angulo) * 0.18
-    );
-    petal.rotation.y = angulo;
-    petal.castShadow = true;
-    grupo.add(petal);
+
+  var yFlor = alturaFlor * 2;
+
+  if (tipo === 'girasol') {
+    // ── Pétalos amarillo-naranja en dos capas ──
+    var coloresPetaloG = [0xFFCC00, 0xFFAA00];
+    for (var capa = 0; capa < 2; capa++) {
+      var numP = 12;
+      for (var i = 0; i < numP; i++) {
+        var ang = (i / numP) * Math.PI * 2 + capa * (Math.PI / numP);
+        var radio = 0.16 + capa * 0.06;
+        var petalGeo = new THREE.SphereGeometry(0.11, 6, 5);
+        petalGeo.scale(0.7, 0.3, 2.2);
+        var petal = new THREE.Mesh(petalGeo,
+          new THREE.MeshLambertMaterial({ color: coloresPetaloG[capa], side: THREE.DoubleSide }));
+        petal.position.set(Math.cos(ang) * radio, yFlor, Math.sin(ang) * radio);
+        petal.rotation.y = ang;
+        grupo.add(petal);
+      }
+    }
+    // Centro café oscuro y texturizado
+    var centroGeo = new THREE.SphereGeometry(0.16, 10, 10);
+    var centro = new THREE.Mesh(centroGeo,
+      new THREE.MeshLambertMaterial({ color: 0x3B1F08 }));
+    centro.position.y = yFlor + 0.04;
+    centro.scale.set(1, 0.55, 1);
+    grupo.add(centro);
+    // Puntitos del centro (semillas)
+    for (var s = 0; s < 7; s++) {
+      var sAng = (s / 7) * Math.PI * 2;
+      var sGeo = new THREE.SphereGeometry(0.025, 5, 5);
+      var sPunto = new THREE.Mesh(sGeo,
+        new THREE.MeshLambertMaterial({ color: 0x1A0A00 }));
+      sPunto.position.set(Math.cos(sAng) * 0.07, yFlor + 0.09, Math.sin(sAng) * 0.07);
+      grupo.add(sPunto);
+    }
+
+  } else if (tipo === 'tulipan') {
+    // ── Copa cerrada de tulipán rojo ──
+    var copaGeo = new THREE.SphereGeometry(0.22, 10, 10);
+    var copa = new THREE.Mesh(copaGeo,
+      new THREE.MeshLambertMaterial({ color: 0xDD1111 }));
+    copa.position.y = yFlor + 0.1;
+    copa.scale.set(0.75, 1.1, 0.75);
+    grupo.add(copa);
+    // Pétalos exteriores que abren un poco
+    var numPT = 6;
+    for (var pt = 0; pt < numPT; pt++) {
+      var angT = (pt / numPT) * Math.PI * 2;
+      var petalTGeo = new THREE.SphereGeometry(0.14, 6, 6);
+      petalTGeo.scale(0.6, 1.8, 0.55);
+      var petalT = new THREE.Mesh(petalTGeo,
+        new THREE.MeshLambertMaterial({ color: 0xFF2222, side: THREE.DoubleSide }));
+      petalT.position.set(
+        Math.cos(angT) * 0.13,
+        yFlor + 0.05,
+        Math.sin(angT) * 0.13
+      );
+      petalT.rotation.y  = angT;
+      petalT.rotation.x  = 0.35;
+      grupo.add(petalT);
+    }
+    // Estambre amarillo interior
+    var estGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.18, 5);
+    var est = new THREE.Mesh(estGeo,
+      new THREE.MeshLambertMaterial({ color: 0xFFEE44 }));
+    est.position.y = yFlor + 0.32;
+    grupo.add(est);
+
+  } else if (tipo === 'rosa') {
+    // ── Rosa rosa en espiral de pétalos ──
+    var coloresRosa = [0xFF85B3, 0xFF5599, 0xFFAACC];
+    var capasRosa   = [
+      { num: 5, radio: 0.06, escY: 1.0, yOff: 0.00 },
+      { num: 7, radio: 0.14, escY: 0.8, yOff: -0.04 },
+      { num: 9, radio: 0.22, escY: 0.55, yOff: -0.08 },
+    ];
+    capasRosa.forEach(function (capa, ci) {
+      for (var pr = 0; pr < capa.num; pr++) {
+        var angR = (pr / capa.num) * Math.PI * 2 + ci * 0.4;
+        var pGeo = new THREE.SphereGeometry(0.1, 6, 6);
+        pGeo.scale(0.65, capa.escY, 1.5);
+        var pMesh = new THREE.Mesh(pGeo,
+          new THREE.MeshLambertMaterial({ color: coloresRosa[ci], side: THREE.DoubleSide }));
+        pMesh.position.set(
+          Math.cos(angR) * capa.radio,
+          yFlor + capa.yOff,
+          Math.sin(angR) * capa.radio
+        );
+        pMesh.rotation.y = angR;
+        pMesh.rotation.x = 0.2 * ci;
+        grupo.add(pMesh);
+      }
+    });
+    // Centro rosado oscuro
+    var cRosaGeo = new THREE.SphereGeometry(0.055, 8, 8);
+    var cRosa = new THREE.Mesh(cRosaGeo,
+      new THREE.MeshLambertMaterial({ color: 0xCC2266 }));
+    cRosa.position.y = yFlor + 0.05;
+    grupo.add(cRosa);
+
+  } else {
+    // ── Margarita blanca ──
+    var numPetM = 10;
+    for (var pm = 0; pm < numPetM; pm++) {
+      var angM = (pm / numPetM) * Math.PI * 2;
+      var pMGeo = new THREE.SphereGeometry(0.09, 6, 5);
+      pMGeo.scale(0.55, 0.28, 2.0);
+      var pMesh2 = new THREE.Mesh(pMGeo,
+        new THREE.MeshLambertMaterial({ color: 0xFFFFFF, side: THREE.DoubleSide }));
+      pMesh2.position.set(
+        Math.cos(angM) * 0.17,
+        yFlor,
+        Math.sin(angM) * 0.17
+      );
+      pMesh2.rotation.y = angM;
+      grupo.add(pMesh2);
+    }
+    // Centro amarillo
+    var cMarGeo = new THREE.SphereGeometry(0.085, 8, 8);
+    var cMar = new THREE.Mesh(cMarGeo,
+      new THREE.MeshLambertMaterial({ color: 0xFFDD00 }));
+    cMar.position.y = yFlor + 0.02;
+    cMar.scale.set(1, 0.6, 1);
+    grupo.add(cMar);
   }
- 
-  // --- Centro de la flor (pistilo) ---
-  var centroGeo = new THREE.SphereGeometry(0.09, 8, 8);
-  var centroMat = new THREE.MeshLambertMaterial({ color: 0xFFE000 }); // Amarillo brillante
-  var centro = new THREE.Mesh(centroGeo, centroMat);
-  centro.position.y = alturaFlor * 2;
-  centro.castShadow = true;
-  grupo.add(centro);
- 
+
   // --- Posición siguiendo el terreno ---
-  var yTerreno = Math.sin(x * 0.25) * 0.5 + Math.cos(z * 0.25) * 0.5
-               + Math.sin(x * 0.6 + z * 0.4) * 0.2;
- 
-  grupo.position.set(x, yTerreno, z);
-  grupo.rotation.y = Math.random() * Math.PI * 2; // Orientación aleatoria
+  grupo.position.set(x, y, z);
+  grupo.rotation.y = Math.random() * Math.PI * 2;
   scene.add(grupo);
   return grupo;
 }

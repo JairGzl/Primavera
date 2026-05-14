@@ -10,7 +10,7 @@
 var mariposas = [];
 var abejas = [];
 var pajaros = [];
-var conejos = [];  // ← NUEVO
+var conejos = [];  
 
 // Paletas de colores vibrantes para las mariposas
 var COLORES_MARIPOSA = [
@@ -26,6 +26,9 @@ var COLORES_MARIPOSA = [
 //  INICIALIZACIÓN — Llamar UNA VEZ desde main.js (antes del loop)
 // ============================================================
 function initFauna() {
+
+  //Crea todas las criaturas y les asigna sus parámetros de movimiento 
+  // (velocidad, radio de órbita, posición inicial, etc.
 
   // --- Mariposas (12 unidades) ---
   for (var i = 0; i < 12; i++) {
@@ -84,12 +87,7 @@ function initFauna() {
 
 // ============================================================
 //  ACTUALIZACIÓN — Llamar CADA FRAME desde el loop en main.js
-//  Ejemplo en main.js:
-//    function animate() {
-//      requestAnimationFrame(animate);
-//      actualizarFauna();   // <-- agregar esta línea
-//      renderer.render(scene, camera);
-//    }
+//  Animación basada en clock.getElapsedTime() para movimientos suaves y sincronizados
 // ============================================================
 function actualizarFauna() {
   var t = clock.getElapsedTime();
@@ -130,7 +128,7 @@ function actualizarFauna() {
       + Math.cos(t * a.velocidadZ + off) * a.radioZ
       + Math.cos(t * 1.9 + off * 0.8) * 0.5;
 
-    var py = 0.9 + Math.abs(Math.sin(t * 2.5 + off)) * 0.8;
+    var py = 1.3 + Math.sin(t * 2.5 + off) * 0.25;
 
     a.grupo.position.set(px, py, pz);
 
