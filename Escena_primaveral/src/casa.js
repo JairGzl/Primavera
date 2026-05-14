@@ -32,8 +32,8 @@ function crearCasa(x, z) {
   // =========================================================
   // TECHO (dos planos inclinados estilo AC)
   // =========================================================
-  var techoMat = new THREE.MeshLambertMaterial({ color: 0x4A90D9, side: THREE.DoubleSide }); // Azul AC
-  var techoOscuroMat = new THREE.MeshLambertMaterial({ color: 0x3A78BE, side: THREE.DoubleSide });
+  var techoMat = new THREE.MeshLambertMaterial({ color: 0xC4956A, side: THREE.DoubleSide }); // Café claro cálido
+var techoOscuroMat = new THREE.MeshLambertMaterial({ color: 0xA87850, side: THREE.DoubleSide }); // Café medio
 
   // Lado frontal del techo
   var techoFGeo = new THREE.BufferGeometry();
@@ -86,7 +86,7 @@ function crearCasa(x, z) {
   grupo.add(techoD);
 
   // Borde del techo (alero) — caja plana que sobresale
-  var aleroMat = new THREE.MeshLambertMaterial({ color: 0x2E5FA3 });
+ var aleroMat = new THREE.MeshLambertMaterial({ color: 0x8B6040 }); // Café oscuro para el borde
   var aleroGeo = new THREE.BoxGeometry(5.2, 0.15, 4.8);
   var alero = new THREE.Mesh(aleroGeo, aleroMat);
   alero.position.y = 3.0;
