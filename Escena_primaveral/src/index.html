@@ -56,7 +56,8 @@
       var delta = clock.getDelta(); // ← obtener el tiempo entre frames
       actualizarFauna();
       actualizarEfectos();
-      animarNubes(delta);           // ← agregar esta línea
+       actualizarPetalos();
+      animarNubes(delta);           // ← agregar esta líne
       updateLago(clock.getElapsedTime());
       renderer.render(scene, camera);
     } 

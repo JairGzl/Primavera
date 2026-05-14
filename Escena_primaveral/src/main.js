@@ -83,15 +83,22 @@ function initEscena() {
   terreno.receiveShadow = true;
   scene.add(terreno);
 
-  // --- Árboles ---
-  crearArbol(100,   0, -5,  1.0);
-  crearArbol(-6,  0, -8,  1.3);
-  crearArbol(10,  0, -12, 0.8);
-  crearArbol(-12, 0, -6,  1.1);
-  crearArbol(0,   0, -15, 1.4);
-  crearArbol(8,   0, -20, 0.9);
-  crearArbol(-8,  0, -18, 1.2);
-  
+// --- Árboles de cerezo ---
+crearArbolCerezo(-15, 0, -18, 1.3);  // fondo izquierdo
+crearArbolCerezo( -5, 0, -20, 1.1);  // fondo centro-izq
+crearArbolCerezo(  5, 0, -18, 1.4);  // fondo centro-der
+crearArbolCerezo( 15, 0, -15, 1.0);  // fondo derecho
+crearArbolCerezo( 18, 0,  -5, 1.2);  // lado derecho trasero
+crearArbolCerezo( 17, 0,   6, 1.1);  // lado derecho centro
+crearArbolCerezo( 12, 0,  15, 0.9);  // frente derecho
+crearArbolCerezo(  2, 0,  17, 1.0);  // frente centro
+crearArbolCerezo( -9, 0,  15, 1.2);  // frente izquierdo
+crearArbolCerezo(-17, 0,   8, 1.1);  // lado izquierdo centro
+crearArbolCerezo(-18, 0,  -5, 1.0);  // lado izquierdo trasero
+crearArbolCerezo( -3, 0,  -9, 0.9);  // interior izquierdo
+crearArbolCerezo(  8, 0,  -6, 1.0);  // interior derecho
+crearArbolCerezo(-11, 0,   3, 1.1);  // interior centro-izq
+crearArbolCerezo(  6, 0,   8, 0.8);  // interior centro-der
 
  // --- Flores ---
 var tiposFlor = ['girasol', 'tulipan', 'rosa', 'margarita'];
@@ -129,116 +136,200 @@ for (var f = 0; f < 200; f++) {
 }
 
 // ============================================================
-//  ÁRBOL MEJORADO — Con hojas y forma más realista
+//  ÁRBOL DE CEREZO — Con pétalos cayendo y raíces visibles
 // ============================================================
- 
-function crearArbol(x, y, z, escala = 1.0) {
+
+var petalosCache = []; // pétalos animados globales
+
+function crearArbolCerezo(x, y, z, escala) {
+  escala = escala || 1.0;
   var grupo = new THREE.Group();
- 
-  // --- Tronco ancho y cónico (como en la imagen) ---
-  var troncoGeo = new THREE.CylinderGeometry(0.45 * escala, 0.6 * escala, 2.5 * escala, 12);
-  var troncoMat = new THREE.MeshLambertMaterial({ color: 0xA0612A }); // Café claro
-  var tronco = new THREE.Mesh(troncoGeo, troncoMat);
-  tronco.position.y = 1.25 * escala;
-  tronco.castShadow = true;
-  tronco.receiveShadow = true;
-  grupo.add(tronco);
- 
-  // Detalle oscuro del tronco (líneas internas, simula el sombreado)
-  var troncoOscuroGeo = new THREE.CylinderGeometry(0.15 * escala, 0.25 * escala, 2.4 * escala, 8);
-  var troncoOscuroMat = new THREE.MeshLambertMaterial({ color: 0x7A4A1E });
-  var troncoOscuro = new THREE.Mesh(troncoOscuroGeo, troncoOscuroMat);
-  troncoOscuro.position.y = 1.25 * escala;
-  grupo.add(troncoOscuro);
- 
-  // --- Copa: esferas grandes formando la silueta redondeada ---
-  var verdeBase  = new THREE.MeshLambertMaterial({ color: 0x5BBD2F }); // Verde brillante
-  var verdeClaro = new THREE.MeshLambertMaterial({ color: 0x76D44A }); // Verde claro (luz arriba)
-  var verdeOscuro= new THREE.MeshLambertMaterial({ color: 0x3E8C1E }); // Verde oscuro (sombra)
- 
-  // Esfera central grande
-  var centroBola = new THREE.Mesh(
-    new THREE.SphereGeometry(1.9 * escala, 12, 12), verdeBase
-  );
-  centroBola.position.y = 4.0 * escala;
-  centroBola.castShadow = true;
-  grupo.add(centroBola);
- 
-  // Bolas que forman los "bultos" de la copa (igual que en la imagen)
-  var bolasData = [
-    { x: -1.6, y: 3.5, z:  0.0, r: 1.4, mat: verdeBase   },
-    { x:  1.6, y: 3.5, z:  0.0, r: 1.4, mat: verdeBase   },
-    { x: -1.0, y: 4.8, z:  0.3, r: 1.2, mat: verdeClaro  },
-    { x:  1.0, y: 4.8, z:  0.3, r: 1.2, mat: verdeClaro  },
-    { x:  0.0, y: 5.2, z:  0.0, r: 1.3, mat: verdeClaro  }, // Tope
-    { x: -1.8, y: 4.5, z: -0.2, r: 0.9, mat: verdeOscuro },
-    { x:  1.8, y: 4.5, z: -0.2, r: 0.9, mat: verdeOscuro },
-    { x:  0.0, y: 3.2, z:  0.5, r: 1.1, mat: verdeOscuro }, // Base copa
-  ];
- 
-  bolasData.forEach(function (b) {
-    var mesh = new THREE.Mesh(
-      new THREE.SphereGeometry(b.r * escala, 10, 10), b.mat
+
+  var matTronco  = new THREE.MeshLambertMaterial({ color: 0x6B3A2A });
+  var matTroncoO = new THREE.MeshLambertMaterial({ color: 0x4A2318 });
+  var matRaiz    = new THREE.MeshLambertMaterial({ color: 0x5A3020 });
+
+  // === RAÍCES (4 raíces que salen de la base) ===
+  var angRaices = [0, Math.PI/2, Math.PI, Math.PI * 1.5];
+  angRaices.forEach(function(ang) {
+    // Raíz principal
+    var raizGeo = new THREE.CylinderGeometry(
+      0.04 * escala, 0.12 * escala, 0.9 * escala, 6
     );
-    mesh.position.set(b.x * escala, b.y * escala, b.z * escala);
-    mesh.castShadow = true;
-    grupo.add(mesh);
+    var raiz = new THREE.Mesh(raizGeo, matRaiz);
+    raiz.position.set(
+      Math.sin(ang) * 0.5 * escala,
+      0.1 * escala,
+      Math.cos(ang) * 0.5 * escala
+    );
+    raiz.rotation.z =  Math.sin(ang) * 0.55;
+    raiz.rotation.x = -Math.cos(ang) * 0.55;
+    grupo.add(raiz);
+
+    // Ramita de raíz secundaria
+    var raiz2Geo = new THREE.CylinderGeometry(
+      0.02 * escala, 0.05 * escala, 0.55 * escala, 5
+    );
+    var raiz2 = new THREE.Mesh(raiz2Geo, matRaiz);
+    raiz2.position.set(
+      Math.sin(ang + 0.4) * 0.75 * escala,
+      0.0,
+      Math.cos(ang + 0.4) * 0.75 * escala
+    );
+    raiz2.rotation.z =  Math.sin(ang + 0.4) * 0.7;
+    raiz2.rotation.x = -Math.cos(ang + 0.4) * 0.7;
+    grupo.add(raiz2);
   });
- 
-  // --- Manzanas rojas (2 a 3 por árbol) ---
-  var manzanaMat      = new THREE.MeshLambertMaterial({ color: 0xFF2020 });
-  var talloManzanaMat = new THREE.MeshLambertMaterial({ color: 0x5D3A1A });
-  var hojaManzanaMat  = new THREE.MeshLambertMaterial({ color: 0x4CAF50 });
- 
-  var manzanasPos = [
-    [ 1.8, 3.4,  1.0],
-    [-1.7, 3.6, -0.6],
-    [ 0.3, 3.0,  1.8],
-    [-1.6, 3.2, -1.5],
-    [ 1.9, 4.2, -0.5],
-    ];
-    
- 
-  var cuantas = 4 + Math.floor(Math.random() * 2); // 2 o 3 manzanas
-  for (var i = 0; i < cuantas; i++) {
-    var p = manzanasPos[i];
- 
-    // Cuerpo
-    var manzana = new THREE.Mesh(
-      new THREE.SphereGeometry(0.24 * escala, 8, 8), manzanaMat
+
+  // === TRONCO principal cónico ===
+  var troncoGeo = new THREE.CylinderGeometry(
+    0.22 * escala, 0.45 * escala, 3.2 * escala, 10
+  );
+  var tronco = new THREE.Mesh(troncoGeo, matTronco);
+  tronco.position.y = 1.6 * escala;
+  tronco.castShadow = true;
+  grupo.add(tronco);
+
+  // Detalle interior oscuro del tronco
+  var troncoIGeo = new THREE.CylinderGeometry(
+    0.08 * escala, 0.18 * escala, 3.1 * escala, 7
+  );
+  var troncoI = new THREE.Mesh(troncoIGeo, matTroncoO);
+  troncoI.position.y = 1.6 * escala;
+  grupo.add(troncoI);
+
+  // === RAMAS principales (4 ramas que se abren) ===
+  var matRama = new THREE.MeshLambertMaterial({ color: 0x7A4030 });
+  var ramasData = [
+    { ang: 0,           incl: 0.55, largo: 1.6 },
+    { ang: Math.PI/2,   incl: 0.50, largo: 1.5 },
+    { ang: Math.PI,     incl: 0.58, largo: 1.7 },
+    { ang: Math.PI*1.5, incl: 0.48, largo: 1.4 },
+    { ang: Math.PI/4,   incl: 0.65, largo: 1.3 },
+    { ang: Math.PI*1.25,incl: 0.60, largo: 1.5 },
+  ];
+
+  ramasData.forEach(function(r) {
+    var ramaGeo = new THREE.CylinderGeometry(
+      0.03 * escala, 0.09 * escala, r.largo * escala, 6
     );
-    manzana.position.set(p[0] * escala, p[1] * escala, p[2] * escala);
-    manzana.castShadow = true;
-    manzana.renderOrder = 1;
-    grupo.add(manzana);
- 
-    // Tallito
-    var tallo = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.025 * escala, 0.025 * escala, 0.2 * escala, 5),
-      talloManzanaMat
+    var rama = new THREE.Mesh(ramaGeo, matRama);
+
+    var altBase = 2.8 * escala;
+    rama.position.set(
+      Math.sin(r.ang) * (r.largo / 2) * Math.sin(r.incl) * escala,
+      altBase + (r.largo / 2) * Math.cos(r.incl) * escala,
+      Math.cos(r.ang) * (r.largo / 2) * Math.sin(r.incl) * escala
     );
-    tallo.position.set(p[0] * escala, (p[1] + 0.3) * escala, p[2] * escala);
-    tallo.renderOrder = 1;
-    grupo.add(tallo);
- 
-    // Hojita
-    var hojaGeo = new THREE.SphereGeometry(0.09 * escala, 5, 4);
-    hojaGeo.scale(2.0, 0.5, 1.0);
-    var hoja = new THREE.Mesh(hojaGeo, hojaManzanaMat);
-    hoja.position.set((p[0] + 0.12) * escala, (p[1] + 0.38) * escala, p[2] * escala);
-    hoja.renderOrder = 1;
-    grupo.add(hoja);
+    rama.rotation.z =  Math.sin(r.ang) * r.incl;
+    rama.rotation.x = -Math.cos(r.ang) * r.incl;
+    rama.castShadow = true;
+    grupo.add(rama);
+  });
+
+  // === COPA — esferas de flores rosas en capas ===
+  var matFlorClaro  = new THREE.MeshLambertMaterial({ color: 0xFFB7C5 }); // Rosa claro
+  var matFlorMedio  = new THREE.MeshLambertMaterial({ color: 0xFF85A1 }); // Rosa medio
+  var matFlorOscuro = new THREE.MeshLambertMaterial({ color: 0xFF5C8A }); // Rosa oscuro
+  var matFlorBlanco = new THREE.MeshLambertMaterial({ color: 0xFFE8EE }); // Casi blanco
+
+  var copaData = [
+    // [x, y, z, radio, material]
+    [ 0.0,  5.0,  0.0,  1.7,  matFlorClaro  ],
+    [-1.4,  4.4, -0.2,  1.3,  matFlorMedio  ],
+    [ 1.4,  4.4, -0.2,  1.3,  matFlorMedio  ],
+    [ 0.0,  4.2,  1.4,  1.2,  matFlorClaro  ],
+    [ 0.0,  4.2, -1.4,  1.1,  matFlorOscuro ],
+    [-1.0,  5.5,  0.5,  1.1,  matFlorBlanco ],
+    [ 1.0,  5.5,  0.5,  1.1,  matFlorBlanco ],
+    [ 0.0,  6.0,  0.0,  1.0,  matFlorClaro  ],
+    [-1.8,  4.8,  0.8,  0.9,  matFlorOscuro ],
+    [ 1.8,  4.8,  0.8,  0.9,  matFlorOscuro ],
+    [ 0.5,  4.0,  0.5,  1.0,  matFlorMedio  ],
+    [-0.5,  4.0,  0.5,  1.0,  matFlorMedio  ],
+    [ 0.0,  3.6,  0.0,  0.9,  matFlorOscuro ],
+  ];
+
+  copaData.forEach(function(b) {
+    var bola = new THREE.Mesh(
+      new THREE.SphereGeometry(b[3] * escala, 10, 10),
+      b[4]
+    );
+    bola.position.set(b[0] * escala, b[1] * escala, b[2] * escala);
+    bola.castShadow = true;
+    grupo.add(bola);
+  });
+
+  // === PÉTALOS cayendo (10 por árbol, animados) ===
+  var matPetalo = new THREE.MeshLambertMaterial({
+    color: 0xFFB7C5,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.85
+  });
+
+  var yBase = Math.sin(x * 0.25) * 0.5 + Math.cos(z * 0.25) * 0.5
+            + Math.sin(x * 0.6 + z * 0.4) * 0.2;
+
+  for (var p = 0; p < 10; p++) {
+    var petalGeo = new THREE.SphereGeometry(0.07, 5, 4);
+    petalGeo.scale(1.8, 0.3, 1.0);
+    var petal = new THREE.Mesh(petalGeo, matPetalo);
+
+    // Posición inicial aleatoria cerca de la copa
+    petal.position.set(
+      x + (Math.random() - 0.5) * 3.5 * escala,
+      yBase + 3.0 + Math.random() * 3.0,
+      z + (Math.random() - 0.5) * 3.5 * escala
+    );
+
+    scene.add(petal);
+
+    // Guardar parámetros de animación
+    petalosCache.push({
+      mesh:      petal,
+      velY:      -(0.008 + Math.random() * 0.012),  // caída lenta
+      velX:      (Math.random() - 0.5) * 0.015,     // deriva horizontal
+      velZ:      (Math.random() - 0.5) * 0.015,
+      velRotX:   (Math.random() - 0.5) * 0.04,      // rotación suave
+      velRotZ:   (Math.random() - 0.5) * 0.04,
+      yMin:      yBase,                              // toca el suelo aquí
+      yStart:    yBase + 3.0 + Math.random() * 3.0, // altura de reaparición
+      xCenter:   x,
+      zCenter:   z,
+      escala:    escala
+    });
   }
- 
-  // --- Sigue el terreno ondulado ---
-  var yTerreno = Math.sin(x * 0.25) * 0.5 + Math.cos(z * 0.25) * 0.5
-               + Math.sin(x * 0.6 + z * 0.4) * 0.2;
- 
-  grupo.position.set(x, yTerreno, z);
+
+  // Posición en el terreno
+  grupo.position.set(x, yBase, z);
   grupo.rotation.y = Math.random() * Math.PI * 2;
   scene.add(grupo);
   return grupo;
 }
+
+// ============================================================
+//  ANIMACIÓN DE PÉTALOS — llamar en el loop de animación
+// ============================================================
+function actualizarPetalos() {
+  petalosCache.forEach(function(p) {
+    p.mesh.position.y += p.velY;
+    p.mesh.position.x += p.velX + Math.sin(Date.now() * 0.001 + p.velRotX) * 0.008;
+    p.mesh.position.z += p.velZ;
+    p.mesh.rotation.x += p.velRotX;
+    p.mesh.rotation.z += p.velRotZ;
+
+    // Al tocar el suelo, reaparece en la copa
+    if (p.mesh.position.y < p.yMin) {
+      p.mesh.position.set(
+        p.xCenter + (Math.random() - 0.5) * 3.5 * p.escala,
+        p.yStart,
+        p.zCenter + (Math.random() - 0.5) * 3.5 * p.escala
+      );
+    }
+  });
+}
+
  
  
 // ============================================================
